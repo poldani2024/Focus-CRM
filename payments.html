@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pagos</title>
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar-container"></div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <h2>Gestión de Pagos</h2>
+      <p class="subtitle">Control mensual de cuotas por alumna</p>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="box filters">
+
+    <div class="row">
+      <div class="form-group">
+        <label>Instituto</label>
+        <select>
+          <option>Todos</option>
+          <option>Museo Cochet</option>
+          <option>Roldán</option>
+          <option>Rosario</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Curso</label>
+        <select>
+          <option>Todos</option>
+          <option>Italiano A1</option>
+          <option>Conversación</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Alumna</label>
+        <input type="text" placeholder="Buscar...">
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TABLA -->
+  <div class="box table-container">
+
+    <div class="table-scroll">
+
+      <table class="payments-table">
+
+        <thead>
+          <tr>
+            <th class="sticky-col">Instituto</th>
+            <th class="sticky-col">Curso</th>
+            <th class="sticky-col">Alumna</th>
+
+            <th>ene-26</th>
+            <th>feb-26</th>
+            <th>mar-26</th>
+            <th>abr-26</th>
+            <th>may-26</th>
+            <th>jun-26</th>
+            <th>jul-26</th>
+            <th>ago-26</th>
+            <th>sep-26</th>
+            <th>oct-26</th>
+            <th>nov-26</th>
+            <th>dic-26</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr>
+            <td class="sticky-col">Museo Cochet</td>
+            <td class="sticky-col">Conversación</td>
+            <td class="sticky-col">Ana Gómez</td>
+
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+          </tr>
+
+          <tr>
+            <td class="sticky-col">Roldán</td>
+            <td class="sticky-col">Italiano B2</td>
+            <td class="sticky-col">María López</td>
+
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+            <td><input type="checkbox"></td>
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script src="layout.js"></script>
+
+</body>
+</html>
