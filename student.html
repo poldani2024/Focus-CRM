@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Alumna</title>
+<title>Alumnas</title>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -16,33 +16,123 @@
 <!-- MAIN -->
 <div class="main">
 
+  <!-- HEADER -->
   <div class="header">
     <div>
-      <h2>Ficha de Alumna</h2>
-      <p class="subtitle">Información general y seguimiento</p>
+      <h2>Gestión de Alumnas</h2>
+      <p class="subtitle">Base de comunidad y seguimiento</p>
     </div>
+
+    <button class="btn-primary">+ Nueva Alumna</button>
   </div>
 
-  <div class="grid">
+  <!-- GRID -->
+  <div class="grid-courses">
 
+    <!-- FORM -->
     <div class="box">
-      <h3>Datos</h3>
-      <p><strong>Nombre:</strong> Ana Gómez</p>
-      <p><strong>Email:</strong> ana@email.com</p>
-      <p><strong>Curso:</strong> Italiano Inicial</p>
+
+      <h3>Alta / Edición</h3>
+
+      <div class="row">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text">
+        </div>
+
+        <div class="form-group">
+          <label>Apellido</label>
+          <input type="text">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Domicilio</label>
+        <input type="text">
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="text">
+        </div>
+
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Fecha de Nacimiento</label>
+        <input type="date">
+      </div>
+
+      <div class="row">
+        <div class="form-group">
+          <label>Estado</label>
+          <select>
+            <option>Activo</option>
+            <option>Inactivo</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Fecha de Inicio</label>
+          <input type="date">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Curso actual</label>
+        <select>
+          <option>Seleccionar curso</option>
+          <option>Italiano Inicial</option>
+          <option>Fonética</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Intereses</label>
+        <input type="text" placeholder="Ej: conversación, viajes, avanzado">
+      </div>
+
+      <div class="form-group">
+        <label>Fuente</label>
+        <input type="text" placeholder="Instagram, recomendación, etc.">
+      </div>
+
+      <div class="form-group">
+        <label>Observaciones</label>
+        <textarea></textarea>
+      </div>
+
+      <button class="btn-primary full">Guardar</button>
+
     </div>
 
+    <!-- LISTA -->
     <div class="box">
-      <h3>Pagos</h3>
-      <p>Marzo: Pagado</p>
-      <p>Abril: Pendiente</p>
+
+      <h3>Alumnas</h3>
+
+      <div class="course-item clickable">
+        <strong>Ana Gómez</strong>
+        <p>Italiano Inicial · Activa</p>
+      </div>
+
+      <div class="course-item clickable">
+        <strong>María López</strong>
+        <p>Fonética · Inactiva</p>
+      </div>
+
+      <div class="course-item clickable">
+        <strong>Carla Ruiz</strong>
+        <p>Italiano Inicial · Activa</p>
+      </div>
+
     </div>
 
-  </div>
-
-  <div class="box mt">
-    <h3>Notas</h3>
-    <p>Interesada en curso avanzado</p>
   </div>
 
 </div>
