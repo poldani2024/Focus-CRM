@@ -4,7 +4,101 @@
   box-sizing: border-box;
   font-family: 'Segoe UI', sans-serif;
 }
+/* CURSOS LAYOUT */
+.grid-courses {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 20px;
+}
 
+/* FORM */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-size: 13px;
+  display: block;
+  margin-bottom: 5px;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+
+textarea {
+  resize: none;
+  height: 80px;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+}
+
+/* DAYS */
+.days {
+  display: flex;
+  gap: 10px;
+}
+
+/* BUTTONS */
+.btn-primary {
+  background: linear-gradient(90deg, #ff0055, #8a00c4);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.full {
+  width: 100%;
+}
+
+/* COURSE LIST */
+.course-item {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.course-item strong {
+  display: block;
+}
+
+/* TAGS */
+.tag {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.tag.green {
+  background: #e6f7f1;
+}
+
+.tag.yellow {
+  background: #fff6e5;
+}
+
+.tag.red {
+  background: #ffeaea;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .grid-courses {
+    grid-template-columns: 1fr;
+  }
+
+  .row {
+    flex-direction: column;
+  }
+}
 body {
   display: flex;
   background: #f5f6fa;
