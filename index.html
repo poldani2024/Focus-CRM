@@ -1,21 +1,110 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard</title>
-<style>
-body{font-family:Arial;margin:0;background:#f5f6fa;}
-.nav{background:#2f3640;color:white;padding:10px;}
-.card{background:white;padding:15px;margin:10px;border-radius:8px;}
-a{display:block;margin:10px;color:blue;}
-</style>
+
+<link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-<div class="nav">Dashboard</div>
-<div class="card">💰 Cobrado hoy: $12000</div>
-<div class="card">⚠️ Pendientes: 8</div>
-<div class="card">🔴 Vencidos: 3</div>
-<a href="course.html">Ir a Curso</a>
-<a href="student.html">Ver Alumna</a>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div>
+    <div class="logo">ANDREA CURSOS</div>
+    <div class="title">Cobros y Alumnas</div>
+
+    <div class="menu">
+      <a class="active">Inicio</a>
+      <a>Alumnas</a>
+      <a>Cursos</a>
+      <a>Pagos</a>
+      <a>Asistencia</a>
+    </div>
+  </div>
+
+  <div class="progress">
+    Cobranza del mes<br>
+    <strong>82%</strong>
+    <div class="progress-bar"></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <h2>Resumen del día</h2>
+      <p class="subtitle">Control de pagos, vencimientos y clases</p>
+    </div>
+
+    <input class="search" placeholder="Buscar alumna, curso o pago...">
+  </div>
+
+  <!-- KPIs -->
+  <div class="cards">
+    <div class="card red">
+      <h3>Cobrado hoy</h3>
+      <strong>$185.000</strong>
+    </div>
+
+    <div class="card yellow">
+      <h3>Pendientes</h3>
+      <strong>23</strong>
+    </div>
+
+    <div class="card blue">
+      <h3>Vencen esta semana</h3>
+      <strong>9</strong>
+    </div>
+
+    <div class="card green">
+      <h3>Clases hoy</h3>
+      <strong>4</strong>
+    </div>
+  </div>
+
+  <!-- GRID -->
+  <div class="grid">
+
+    <!-- IZQUIERDA -->
+    <div class="box">
+      <h3>Pagos por curso</h3>
+      <p class="subtitle">Quién viene cobrando mejor este mes</p>
+
+      <div class="chart-placeholder">
+        (gráfico)
+      </div>
+    </div>
+
+    <!-- DERECHA -->
+    <div>
+
+      <div class="box">
+        <h3>Seguimientos pendientes</h3>
+
+        <div class="task">🔴 Confirmar 3 transferencias</div>
+        <div class="task">🔴 Enviar 5 recordatorios</div>
+        <div class="task">🔴 Revisar cuota vencida</div>
+      </div>
+
+      <div class="box mt">
+        <h3>Movimientos recientes</h3>
+
+        <p>Pago acreditado de Mariana</p>
+        <p>Nueva alumna en PNL inicial</p>
+        <p>Asistencia cargada</p>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
 </body>
 </html>
