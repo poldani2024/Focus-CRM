@@ -1,34 +1,53 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Alumna</title>
-<style>
-body{font-family:Arial;margin:0;background:#f5f6fa;}
-.nav{background:#8e44ad;color:white;padding:10px;}
-.card{background:white;padding:10px;margin:10px;border-radius:8px;}
-</style>
+
+<link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-<div class="nav">Ficha Alumna</div>
 
-<div class="card">
-<b>Nombre:</b> Ana Gómez<br>
-<b>Email:</b> ana@email.com<br>
-<b>Curso:</b> Italiano Inicial<br>
+<!-- SIDEBAR -->
+<div id="sidebar-container"></div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <div class="header">
+    <div>
+      <h2>Ficha de Alumna</h2>
+      <p class="subtitle">Información general y seguimiento</p>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <div class="box">
+      <h3>Datos</h3>
+      <p><strong>Nombre:</strong> Ana Gómez</p>
+      <p><strong>Email:</strong> ana@email.com</p>
+      <p><strong>Curso:</strong> Italiano Inicial</p>
+    </div>
+
+    <div class="box">
+      <h3>Pagos</h3>
+      <p>Marzo: Pagado</p>
+      <p>Abril: Pendiente</p>
+    </div>
+
+  </div>
+
+  <div class="box mt">
+    <h3>Notas</h3>
+    <p>Interesada en curso avanzado</p>
+  </div>
+
 </div>
 
-<div class="card">
-<b>Pagos</b><br>
-Marzo: Pagado<br>
-Abril: Pendiente<br>
-</div>
+<script src="layout.js"></script>
 
-<div class="card">
-<b>Notas</b><br>
-Interesada en curso avanzado
-</div>
-
-<a href="index.html">Volver</a>
 </body>
 </html>
