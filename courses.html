@@ -10,27 +10,12 @@
 
 <body>
 
-<!-- SIDEBAR -->
-<div class="sidebar">
-  <div>
-    <div class="logo">ANDREA CURSOS</div>
-    <div class="title">Cobros y Alumnas</div>
-
-    <div class="menu">
-      <a href="index.html">Inicio</a>
-      <a>Alumnas</a>
-      <a class="active">Cursos</a>
-      <a>Pagos</a>
-      <a>Asistencia</a>
-      <a href="config-institutes.html">Configuración</a>
-    </div>
-  </div>
-</div>
+<!-- SIDEBAR DINÁMICO -->
+<div id="sidebar-container"></div>
 
 <!-- MAIN -->
 <div class="main">
 
-  <!-- HEADER -->
   <div class="header">
     <div>
       <h2>Gestión de Cursos</h2>
@@ -40,7 +25,6 @@
     <button class="btn-primary">+ Nuevo Curso</button>
   </div>
 
-  <!-- GRID -->
   <div class="grid-courses">
 
     <!-- FORM -->
@@ -48,35 +32,30 @@
 
       <h3>Alta / Edición de Curso</h3>
 
-      <!-- Instituto -->
       <div class="form-group">
         <label>Instituto</label>
-        <select id="institute">
+        <select>
           <option value="">Seleccionar instituto</option>
           <option>Instituto ABC</option>
           <option>Centro Cultural Norte</option>
         </select>
       </div>
 
-      <!-- Nombre -->
       <div class="form-group">
         <label>Nombre del Curso</label>
         <input type="text" placeholder="Italiano Inicial">
       </div>
 
-      <!-- Descripción -->
       <div class="form-group">
         <label>Descripción</label>
-        <textarea placeholder="Detalle del curso"></textarea>
+        <textarea></textarea>
       </div>
 
-      <!-- Horas -->
       <div class="form-group">
         <label>Total de Horas</label>
         <input type="number">
       </div>
 
-      <!-- Días -->
       <div class="form-group">
         <label>Días</label>
         <div class="days">
@@ -90,26 +69,22 @@
         </div>
       </div>
 
-      <!-- Horarios -->
       <div class="row">
         <div class="form-group">
           <label>Hora Inicio</label>
           <input type="time">
         </div>
-
         <div class="form-group">
           <label>Hora Fin</label>
           <input type="time">
         </div>
       </div>
 
-      <!-- Costo -->
       <div class="form-group">
         <label>Costo ($)</label>
         <input type="number">
       </div>
 
-      <!-- Estado -->
       <div class="form-group">
         <label>Estado</label>
         <select>
@@ -130,27 +105,9 @@
       <h3>Cursos</h3>
 
       <div class="course-item clickable">
-        <div>
-          <strong>Italiano Inicial</strong>
-          <p>Instituto ABC · Lunes y Miércoles</p>
-          <span class="tag green">Activo</span>
-        </div>
-      </div>
-
-      <div class="course-item clickable">
-        <div>
-          <strong>Fonética</strong>
-          <p>Centro Cultural Norte · Martes</p>
-          <span class="tag yellow">Plan</span>
-        </div>
-      </div>
-
-      <div class="course-item clickable">
-        <div>
-          <strong>Italiano Avanzado</strong>
-          <p>Instituto ABC · Viernes</p>
-          <span class="tag red">Finalizado</span>
-        </div>
+        <strong>Italiano Inicial</strong>
+        <p>Instituto ABC · Lunes y Miércoles</p>
+        <span class="tag green">Activo</span>
       </div>
 
     </div>
@@ -158,6 +115,8 @@
   </div>
 
 </div>
+
+<script src="layout.js"></script>
 
 </body>
 </html>
