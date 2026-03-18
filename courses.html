@@ -22,6 +22,7 @@
       <a class="active">Cursos</a>
       <a>Pagos</a>
       <a>Asistencia</a>
+      <a href="config-institutes.html">Configuración</a>
     </div>
   </div>
 </div>
@@ -47,26 +48,35 @@
 
       <h3>Alta / Edición de Curso</h3>
 
+      <!-- Instituto -->
       <div class="form-group">
         <label>Instituto</label>
-        <input type="text" placeholder="Ej: Instituto ABC">
+        <select id="institute">
+          <option value="">Seleccionar instituto</option>
+          <option>Instituto ABC</option>
+          <option>Centro Cultural Norte</option>
+        </select>
       </div>
 
+      <!-- Nombre -->
       <div class="form-group">
         <label>Nombre del Curso</label>
         <input type="text" placeholder="Italiano Inicial">
       </div>
 
+      <!-- Descripción -->
       <div class="form-group">
         <label>Descripción</label>
         <textarea placeholder="Detalle del curso"></textarea>
       </div>
 
+      <!-- Horas -->
       <div class="form-group">
         <label>Total de Horas</label>
         <input type="number">
       </div>
 
+      <!-- Días -->
       <div class="form-group">
         <label>Días</label>
         <div class="days">
@@ -80,6 +90,7 @@
         </div>
       </div>
 
+      <!-- Horarios -->
       <div class="row">
         <div class="form-group">
           <label>Hora Inicio</label>
@@ -92,11 +103,13 @@
         </div>
       </div>
 
+      <!-- Costo -->
       <div class="form-group">
         <label>Costo ($)</label>
         <input type="number">
       </div>
 
+      <!-- Estado -->
       <div class="form-group">
         <label>Estado</label>
         <select>
@@ -116,26 +129,26 @@
 
       <h3>Cursos</h3>
 
-      <div class="course-item">
+      <div class="course-item clickable">
         <div>
           <strong>Italiano Inicial</strong>
-          <p>Instituto ABC</p>
+          <p>Instituto ABC · Lunes y Miércoles</p>
           <span class="tag green">Activo</span>
         </div>
       </div>
 
-      <div class="course-item">
+      <div class="course-item clickable">
         <div>
           <strong>Fonética</strong>
-          <p>Centro Cultural</p>
+          <p>Centro Cultural Norte · Martes</p>
           <span class="tag yellow">Plan</span>
         </div>
       </div>
 
-      <div class="course-item">
+      <div class="course-item clickable">
         <div>
           <strong>Italiano Avanzado</strong>
-          <p>Instituto ABC</p>
+          <p>Instituto ABC · Viernes</p>
           <span class="tag red">Finalizado</span>
         </div>
       </div>
