@@ -4,6 +4,85 @@
   box-sizing: border-box;
   font-family: 'Segoe UI', sans-serif;
 }
+/* FILTROS */
+.filters {
+  margin-bottom: 20px;
+}
+
+/* CONTENEDOR TABLA */
+.table-container {
+  overflow: hidden;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+/* TABLA */
+.payments-table {
+  border-collapse: collapse;
+  min-width: 1000px;
+}
+
+.payments-table th,
+.payments-table td {
+  border: 1px solid #eee;
+  padding: 10px;
+  text-align: center;
+  background: white;
+}
+
+/* HEADER */
+.payments-table th {
+  background: #f5f6fa;
+  font-size: 13px;
+}
+
+/* COLUMNAS FIJAS */
+.sticky-col {
+  position: sticky;
+  left: 0;
+  background: white;
+  z-index: 2;
+  text-align: left;
+}
+
+/* OFFSET PARA CADA COLUMNA */
+.payments-table td:nth-child(1),
+.payments-table th:nth-child(1) {
+  left: 0;
+}
+
+.payments-table td:nth-child(2),
+.payments-table th:nth-child(2) {
+  left: 120px;
+}
+
+.payments-table td:nth-child(3),
+.payments-table th:nth-child(3) {
+  left: 240px;
+}
+
+/* CHECKS */
+.payments-table input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+
+  .payments-table {
+    font-size: 12px;
+  }
+
+  .payments-table th,
+  .payments-table td {
+    padding: 6px;
+  }
+
+}
 /* CURSOS LAYOUT */
 .grid-courses {
   display: grid;
