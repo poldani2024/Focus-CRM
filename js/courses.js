@@ -1,118 +1,202 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cursos</title>
+import { db } from "./firebase.js";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  doc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-<link rel="stylesheet" href="styles.css">
-</head>
+let currentCourseId = null;
 
-<body>
+// =====================
+// INIT
+// =====================
+loadOrganizers();
+loadLocations();
+loadCourses();
 
-<div id="sidebar-container"></div>
+// =====================
+// LOAD SELECTS
+// =====================
+async function loadOrganizers() {
+  const snap = await getDocs(collection(db, "organizers"));
+  const sel = document.getElementById("course-organizer");
 
-<div class="main">
+  sel.innerHTML = "<option value=''>Seleccionar</option>";
 
-  <div class="header">
-    <h2>Gestión de Cursos</h2>
-  </div>
+  snap.forEach(d => {
+    sel.innerHTML += `<option value="${d.id}">${d.data().name}</option>`;
+  });
+}
 
-  <div class="grid-courses">
+async function loadLocations() {
+  const snap = await getDocs(collection(db, "locations"));
+  const sel = document.getElementById("course-location");
 
-    <!-- FORM -->
-    <div class="box">
+  sel.innerHTML = "<option value=''>Seleccionar</option>";
 
-      <h3>Curso</h3>
+  snap.forEach(d => {
+    sel.innerHTML += `<option value="${d.id}">${d.data().name}</option>`;
+  });
+}
 
-      <input type="hidden" id="course-id">
+// =====================
+// GUARDAR
+// =====================
+window.saveCourse = async () => {
 
-      <div class="form-group">
-        <label>Organizador</label>
-        <select id="course-organizer"></select>
+  const data = {
+    organizerId: document.getElementById("course-organizer").value,
+    locationId: document.getElementById("course-location").value,
+    name: document.getElementById("course-name").value,
+    startDate: document.getElementById("course-start").value,
+    endDate: document.getElementById("course-end").value,
+    price: parseFloat(document.getElementById("course-price").value),
+    status: document.getElementById("course-status").value,
+    createdAt: new Date()
+  };
+
+  if (!data.name) return alert("Nombre requerido");
+
+  if (!currentCourseId) {
+    await addDoc(collection(db, "courses"), data);
+  } else {
+    await updateDoc(doc(db, "courses", currentCourseId), data);
+  }
+
+  clearForm();
+  loadCourses();
+};
+
+// =====================
+// LISTA
+// =====================
+async function loadCourses() {
+
+  const snap = await getDocs(collection(db, "courses"));
+  const list = document.getElementById("courses-list");
+
+  list.innerHTML = "";
+
+  snap.forEach(d => {
+    const c = d.data();
+
+    list.innerHTML += `
+      <div class="course-item" onclick="editCourse('${d.id}')">
+        <strong>${c.name}</strong>
+        <p>${c.status}</p>
       </div>
+    `;
+  });
+}
 
-      <div class="form-group">
-        <label>Sede</label>
-        <select id="course-location"></select>
-      </div>
+// =====================
+// EDITAR
+// =====================
+window.editCourse = async (id) => {
 
-      <div class="form-group">
-        <label>Nombre</label>
-        <input id="course-name">
-      </div>
+  const snap = await getDocs(collection(db, "courses"));
 
-      <div class="form-group">
-        <label>Fecha Inicio</label>
-        <input type="date" id="course-start">
-      </div>
+  snap.forEach(d => {
+    if (d.id === id) {
+      const c = d.data();
 
-      <div class="form-group">
-        <label>Fecha Fin</label>
-        <input type="date" id="course-end">
-      </div>
+      currentCourseId = id;
 
-      <div class="form-group">
-        <label>Precio Base</label>
-        <input type="number" id="course-price">
-      </div>
+      document.getElementById("course-organizer").value = c.organizerId;
+      document.getElementById("course-location").value = c.locationId;
+      document.getElementById("course-name").value = c.name;
+      document.getElementById("course-start").value = c.startDate;
+      document.getElementById("course-end").value = c.endDate;
+      document.getElementById("course-price").value = c.price;
+      document.getElementById("course-status").value = c.status;
 
-      <div class="form-group">
-        <label>Estado</label>
-        <select id="course-status">
-          <option>Plan</option>
-          <option>Activo</option>
-          <option>Finalizado</option>
-          <option>Cancelado</option>
-        </select>
-      </div>
+      loadFees();
+    }
+  });
+};
 
-      <button class="btn-primary full" onclick="saveCourse()">
-        Guardar
-      </button>
+// =====================
+// LIMPIAR
+// =====================
+function clearForm() {
+  currentCourseId = null;
+  document.querySelectorAll("input").forEach(i => i.value = "");
+}
 
-    </div>
+// =====================
+// CUOTAS
+// =====================
+async function loadFees() {
 
-    <!-- LISTA -->
-    <div class="box">
+  if (!currentCourseId) return;
 
-      <h3>Cursos</h3>
+  const snap = await getDocs(collection(db, "course_fees"));
+  const tbody = document.getElementById("fees-body");
 
-      <div id="courses-list"></div>
+  tbody.innerHTML = "";
 
-    </div>
+  snap.forEach(d => {
+    const f = d.data();
 
-  </div>
-
-  <!-- CUOTAS -->
-  <div class="box">
-
-    <h3>Cuotas</h3>
-
-    <button class="btn-primary" onclick="generateFees()">
-      Generar Cuotas
-    </button>
-
-    <table class="fees-table">
-      <thead>
+    if (f.courseId === currentCourseId) {
+      tbody.innerHTML += `
         <tr>
-          <th>Mes</th>
-          <th>Año</th>
-          <th>Monto</th>
-          <th>Vencimiento</th>
-          <th>%</th>
-          <th></th>
+          <td>${f.month}</td>
+          <td>${f.year}</td>
+          <td><input value="${f.amount}" onchange="updateFee('${d.id}','amount',this.value)"></td>
+          <td><input type="date" value="${f.dueDate}" onchange="updateFee('${d.id}','dueDate',this.value)"></td>
+          <td><input value="${f.interestPercent}" onchange="updateFee('${d.id}','interestPercent',this.value)"></td>
+          <td><button onclick="deleteFee('${d.id}')">🗑</button></td>
         </tr>
-      </thead>
-      <tbody id="fees-body"></tbody>
-    </table>
+      `;
+    }
+  });
+}
 
-  </div>
+window.generateFees = async () => {
 
-</div>
+  if (!currentCourseId) return alert("Guardar curso primero");
 
-<script src="layout.js"></script>
-<script type="module" src="./js/courses.js"></script>
+  const start = new Date(document.getElementById("course-start").value);
+  const end = new Date(document.getElementById("course-end").value);
+  const price = parseFloat(document.getElementById("course-price").value);
 
-</body>
-</html>
+  let current = new Date(start);
+
+  while (current <= end) {
+
+    await addDoc(collection(db, "course_fees"), {
+      courseId: currentCourseId,
+      month: current.getMonth() + 1,
+      year: current.getFullYear(),
+      amount: price,
+      dueDate: new Date(current.getFullYear(), current.getMonth(), 10)
+        .toISOString().split("T")[0],
+      interestPercent: 10
+    });
+
+    current.setMonth(current.getMonth() + 1);
+  }
+
+  loadFees();
+};
+
+window.updateFee = async (id, field, value) => {
+
+  await updateDoc(doc(db, "course_fees", id), {
+    [field]: field === "amount" || field === "interestPercent"
+      ? parseFloat(value)
+      : value
+  });
+};
+
+window.deleteFee = async (id) => {
+
+  if (!confirm("Eliminar?")) return;
+
+  await deleteDoc(doc(db, "course_fees", id));
+  loadFees();
+};
