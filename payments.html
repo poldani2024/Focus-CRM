@@ -28,24 +28,37 @@
   background: #f5f6fa;
 }
 
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
 .modal {
-  display:none;
-  position:fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background:rgba(0,0,0,0.4);
-  align-items:center;
-  justify-content:center;
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-content {
-  background:white;
-  padding:20px;
-  border-radius:10px;
-  width:300px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filters-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 </style>
 </head>
@@ -62,12 +75,17 @@
 
   <!-- FILTROS -->
   <div class="box">
-    <select id="filter-organizer" onchange="onOrganizerChange()"></select>
-    <select id="filter-location" onchange="onLocationChange()"></select>
-    <select id="filter-course" onchange="onCourseChange()"></select>
-    <select id="filter-student"></select>
+    <div class="filters-grid">
+      <select id="filter-organizer" onchange="onOrganizerChange()"></select>
+      <select id="filter-location" onchange="onLocationChange()"></select>
+      <select id="filter-course" onchange="onCourseChange()"></select>
+      <select id="filter-student"></select>
+      <select id="filter-year"></select>
+    </div>
 
-    <button class="btn-primary" onclick="loadGrid()">Filtrar</button>
+    <div class="filters-actions mt">
+      <button class="btn-primary" onclick="loadGrid()">Filtrar</button>
+    </div>
   </div>
 
   <!-- TABLA -->

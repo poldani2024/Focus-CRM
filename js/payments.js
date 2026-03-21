@@ -2,13 +2,16 @@ import { db } from "./firebase.js";
 import {
   collection,
   getDocs,
-  addDoc,doc, updateDoc
+  addDoc,
+  doc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 let organizers = [];
 let locations = [];
 let courses = [];
 let students = [];
+let enrollments = [];
 
 let feesMap = {};
 let paymentsMap = {};
@@ -23,23 +26,116 @@ init();
 async function init() {
   await loadData();
   fillOrganizers();
+  fillYears();
+  onOrganizerChange();
   loadGrid();
+}
+
+// =====================
+// HELPERS
+// =====================
+function parseDate(value) {
+  return value ? new Date(`${value}T00:00:00`) : null;
+}
+
+function getSelectedFilters() {
+  return {
+    organizerId: document.getElementById("filter-organizer").value,
+    locationId: document.getElementById("filter-location").value,
+    courseId: document.getElementById("filter-course").value,
+    studentId: document.getElementById("filter-student").value,
+    year: Number(document.getElementById("filter-year").value) || new Date().getFullYear()
+  };
+}
+
+function getCoursesByFilters({ organizerId = "", locationId = "" } = {}) {
+  return courses.filter(course => {
+    if (organizerId && course.organizerId !== organizerId) return false;
+    if (locationId && course.locationId !== locationId) return false;
+    return true;
+  });
+}
+
+function getStudentFullName(student = {}) {
+  return [student.name, student.lastName || student.lastname]
+    .filter(Boolean)
+    .join(" ");
 }
 
 // =====================
 // CARGA DATA
 // =====================
 async function loadData() {
-
-  const orgSnap = await getDocs(collection(db, "organizers"));
-  const locSnap = await getDocs(collection(db, "locations"));
-  const courseSnap = await getDocs(collection(db, "courses"));
-  const studentSnap = await getDocs(collection(db, "students"));
+  const [
+    orgSnap,
+    locSnap,
+    courseSnap,
+    studentSnap,
+    enrollSnap,
+    paymentsSnap,
+    feesSnap
+  ] = await Promise.all([
+    getDocs(collection(db, "organizers")),
+    getDocs(collection(db, "locations")),
+    getDocs(collection(db, "courses")),
+    getDocs(collection(db, "students")),
+    getDocs(collection(db, "enrollments")),
+    getDocs(collection(db, "payments")),
+    getDocs(collection(db, "course_fees"))
+  ]);
 
   organizers = orgSnap.docs.map(d => ({ id: d.id, ...d.data() }));
   locations = locSnap.docs.map(d => ({ id: d.id, ...d.data() }));
   courses = courseSnap.docs.map(d => ({ id: d.id, ...d.data() }));
   students = studentSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  enrollments = enrollSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  paymentsMap = {};
+  paymentsSnap.forEach(d => {
+    const payment = d.data();
+    const paymentYear = Number(payment.year) || parseDate(payment.paymentDate)?.getFullYear();
+
+    if (!paymentYear) return;
+
+    paymentsMap[`${payment.enrollmentId}_${payment.month}_${paymentYear}`] = {
+      id: d.id,
+      ...payment,
+      year: paymentYear
+    };
+  });
+
+  feesMap = {};
+  feesSnap.forEach(d => {
+    const fee = d.data();
+    feesMap[`${fee.courseId}_${fee.month}_${fee.year}`] = {
+      id: d.id,
+      ...fee
+    };
+  });
+}
+
+function fillYears() {
+  const sel = document.getElementById("filter-year");
+  const currentYear = new Date().getFullYear();
+  const yearSet = new Set([currentYear]);
+
+  courses.forEach(course => {
+    const startYear = parseDate(course.startDate)?.getFullYear();
+    const endYear = parseDate(course.endDate)?.getFullYear();
+
+    if (startYear) yearSet.add(startYear);
+    if (endYear) yearSet.add(endYear);
+  });
+
+  Object.values(feesMap).forEach(fee => {
+    if (fee.year) yearSet.add(Number(fee.year));
+  });
+
+  const years = [...yearSet].sort((a, b) => a - b);
+
+  sel.innerHTML = years
+    .map(year => `<option value="${year}" ${year === currentYear ? "selected" : ""}>${year}</option>`)
+    .join("");
 }
 
 // =====================
@@ -47,103 +143,126 @@ async function loadData() {
 // =====================
 function fillOrganizers() {
   const sel = document.getElementById("filter-organizer");
-
   sel.innerHTML = "<option value=''>Organizador</option>";
-  organizers.forEach(o => {
-    sel.innerHTML += `<option value="${o.id}">${o.name}</option>`;
+
+  organizers.forEach(organizer => {
+    sel.innerHTML += `<option value="${organizer.id}">${organizer.name}</option>`;
+  });
+}
+
+function fillLocations(organizerId = "") {
+  const sel = document.getElementById("filter-location");
+  const visibleCourses = getCoursesByFilters({ organizerId });
+  const locationIds = new Set(visibleCourses.map(course => course.locationId).filter(Boolean));
+
+  const visibleLocations = organizerId
+    ? locations.filter(location => locationIds.has(location.id))
+    : locations;
+
+  sel.innerHTML = "<option value=''>Sede</option>";
+
+  visibleLocations.forEach(location => {
+    sel.innerHTML += `<option value="${location.id}">${location.name}</option>`;
+  });
+}
+
+function fillCourses(organizerId = "", locationId = "") {
+  const sel = document.getElementById("filter-course");
+  const visibleCourses = getCoursesByFilters({ organizerId, locationId });
+
+  sel.innerHTML = "<option value=''>Curso</option>";
+
+  visibleCourses.forEach(course => {
+    sel.innerHTML += `<option value="${course.id}">${course.name}</option>`;
+  });
+}
+
+function fillStudents(courseId = "") {
+  const sel = document.getElementById("filter-student");
+  let visibleStudents = students;
+
+  if (courseId) {
+    const studentIds = new Set(
+      enrollments
+        .filter(enrollment => enrollment.courseId === courseId)
+        .map(enrollment => enrollment.studentId)
+    );
+
+    visibleStudents = students.filter(student => studentIds.has(student.id));
+  }
+
+  sel.innerHTML = "<option value=''>Alumno</option>";
+
+  visibleStudents.forEach(student => {
+    sel.innerHTML += `<option value="${student.id}">${getStudentFullName(student)}</option>`;
   });
 }
 
 window.onOrganizerChange = () => {
-  const orgId = document.getElementById("filter-organizer").value;
-
-  const sel = document.getElementById("filter-location");
-  sel.innerHTML = "<option value=''>Sede</option>";
-
-  locations
-    .filter(l => l.organizerId === orgId)
-    .forEach(l => {
-      sel.innerHTML += `<option value="${l.id}">${l.name}</option>`;
-    });
+  const organizerId = document.getElementById("filter-organizer").value;
+  fillLocations(organizerId);
+  fillCourses(organizerId);
+  fillStudents();
 };
 
 window.onLocationChange = () => {
-  const locId = document.getElementById("filter-location").value;
+  const { organizerId } = getSelectedFilters();
+  const locationId = document.getElementById("filter-location").value;
 
-  const sel = document.getElementById("filter-course");
-  sel.innerHTML = "<option value=''>Curso</option>";
-
-  courses
-    .filter(c => c.locationId === locId)
-    .forEach(c => {
-      sel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-    });
+  fillCourses(organizerId, locationId);
+  fillStudents();
 };
 
 window.onCourseChange = () => {
-  const sel = document.getElementById("filter-student");
-  sel.innerHTML = "<option value=''>Alumno</option>";
-
-  students.forEach(s => {
-    sel.innerHTML += `<option value="${s.id}">${s.name}</option>`;
-  });
+  const courseId = document.getElementById("filter-course").value;
+  fillStudents(courseId);
 };
 
 // =====================
 // GRID
 // =====================
 window.loadGrid = async () => {
+  await loadData();
 
+  const { organizerId, locationId, courseId, studentId, year } = getSelectedFilters();
   const head = document.getElementById("payments-head");
   const body = document.getElementById("payments-body");
 
-  // HEADER
-  let headerHtml = "<tr><th>Alumno</th>";
-  for (let m = 1; m <= 12; m++) {
-    headerHtml += `<th>${m}</th>`;
+  let headerHtml = `<tr><th>Alumno</th><th>Curso</th>`;
+  for (let month = 1; month <= 12; month++) {
+    headerHtml += `<th>${month}/${year}</th>`;
   }
   headerHtml += "</tr>";
   head.innerHTML = headerHtml;
 
-  body.innerHTML = "";
+  const studentsMap = Object.fromEntries(students.map(student => [student.id, student]));
+  const coursesMap = Object.fromEntries(courses.map(course => [course.id, course]));
 
-  const enrollSnap = await getDocs(collection(db, "enrollments"));
-  const studentsSnap = await getDocs(collection(db, "students"));
-  const paymentsSnap = await getDocs(collection(db, "payments"));
-  const feesSnap = await getDocs(collection(db, "course_fees"));
-
-  let studentsMap = {};
-  studentsSnap.forEach(d => studentsMap[d.id] = d.data());
-
-  paymentsMap = {};
-  paymentsSnap.forEach(d => {
-    const p = d.data();
-    paymentsMap[`${p.enrollmentId}_${p.month}`] = { id: d.id, ...p };
-  });
-
-  feesMap = {};
-  feesSnap.forEach(d => {
-    const f = d.data();
-    feesMap[`${f.courseId}_${f.month}_${f.year}`] = f;
+  const filteredEnrollments = enrollments.filter(enrollment => {
+    const course = coursesMap[enrollment.courseId];
+    if (!course) return false;
+    if (organizerId && course.organizerId !== organizerId) return false;
+    if (locationId && course.locationId !== locationId) return false;
+    if (courseId && enrollment.courseId !== courseId) return false;
+    if (studentId && enrollment.studentId !== studentId) return false;
+    return true;
   });
 
   let bodyHtml = "";
 
-  enrollSnap.forEach(docSnap => {
+  filteredEnrollments.forEach(enrollment => {
+    const student = studentsMap[enrollment.studentId];
+    const course = coursesMap[enrollment.courseId];
+    if (!student || !course) return;
 
-    const e = docSnap.data();
-    const student = studentsMap[e.studentId];
-    if (!student) return;
+    let row = `<tr><td>${getStudentFullName(student)}</td><td>${course.name || "-"}</td>`;
 
-    let row = `<tr><td>${student.name} ${student.lastname}</td>`;
-
-    for (let m = 1; m <= 12; m++) {
-
-      const payment = paymentsMap[`${docSnap.id}_${m}`];
+    for (let month = 1; month <= 12; month++) {
+      const payment = paymentsMap[`${enrollment.id}_${month}_${year}`];
 
       row += `
-        <td onclick="openPaymentModal('${docSnap.id}', ${m})">
-          ${renderCell(docSnap.id, e.courseId, m, payment)}
+        <td onclick="openPaymentModal('${enrollment.id}', ${month}, ${year})">
+          ${renderCell(enrollment, month, year, payment)}
         </td>
       `;
     }
@@ -152,40 +271,33 @@ window.loadGrid = async () => {
     bodyHtml += row;
   });
 
-  body.innerHTML = bodyHtml;
+  body.innerHTML = bodyHtml || "<tr><td colspan='14'>No hay registros para los filtros seleccionados.</td></tr>";
 };
 
 // =====================
 // CELDA
 // =====================
-function renderCell(enrollmentId, courseId, month, payment) {
+function renderCell(enrollment, month, year, payment) {
+  const fee = feesMap[`${enrollment.courseId}_${month}_${year}`];
+  if (!fee?.dueDate) return "";
 
   const now = new Date();
-  const currentMonth = now.getMonth() + 1;
-  const year = now.getFullYear();
-
-  const fee = feesMap[`${courseId}_${month}_${year}`];
-  if (!fee || !fee.dueDate) return "";
-
-  const dueDate = new Date(fee.dueDate);
+  const dueDate = parseDate(fee.dueDate);
+  if (!dueDate) return "";
 
   if (payment) {
+    const paymentDate = parseDate(payment.paymentDate);
 
-    const paymentDate = new Date(payment.paymentDate);
-
-    if (paymentDate <= dueDate) {
+    if (paymentDate && paymentDate <= dueDate) {
       return `<span style="background:#22c55e;color:white;padding:4px 7px;border-radius:6px;">✔</span>`;
     }
 
     return `<span style="background:#ef4444;color:white;padding:4px 7px;border-radius:6px;">✔</span>`;
   }
 
-  if (month < currentMonth && now > dueDate) {
-    return `<span style="color:red;">●</span>`;
-  }
-
-  if (month === currentMonth && now > dueDate) {
-    return `<span style="color:orange;">●</span>`;
+  if (now > dueDate) {
+    const sameMonth = now.getMonth() + 1 === month && now.getFullYear() === year;
+    return `<span style="color:${sameMonth ? "orange" : "red"};">●</span>`;
   }
 
   return "";
@@ -194,28 +306,23 @@ function renderCell(enrollmentId, courseId, month, payment) {
 // =====================
 // MODAL
 // =====================
-window.openPaymentModal = (enrollmentId, month) => {
+window.openPaymentModal = (enrollmentId, month, year) => {
+  currentPayment = { enrollmentId, month, year };
 
-  currentPayment = { enrollmentId, month };
-
-  const key = `${enrollmentId}_${month}`;
+  const key = `${enrollmentId}_${month}_${year}`;
   const existing = paymentsMap[key];
 
-  // 🧠 SI EXISTE → CARGAR DATOS
   if (existing) {
-    document.getElementById("pay-date").value = existing.paymentDate?.substring(0,10) || "";
+    document.getElementById("pay-date").value = existing.paymentDate?.substring(0, 10) || "";
     document.getElementById("pay-method").value = existing.method || "Efectivo";
     document.getElementById("pay-amount").value = existing.amount || "";
     document.getElementById("pay-ref").value = existing.reference || "";
-
-    currentPayment.id = existing.id; // 👈 IMPORTANTE
+    currentPayment.id = existing.id;
   } else {
-    // 🧼 LIMPIAR FORM
     document.getElementById("pay-date").value = "";
     document.getElementById("pay-method").value = "Efectivo";
     document.getElementById("pay-amount").value = "";
     document.getElementById("pay-ref").value = "";
-
     currentPayment.id = null;
   }
 
@@ -227,25 +334,28 @@ window.closeModal = () => {
 };
 
 window.savePayment = async () => {
+  const paymentDate = document.getElementById("pay-date").value;
+  const amountValue = document.getElementById("pay-amount").value;
+
+  if (!paymentDate) return alert("Ingresar fecha de pago");
+  if (!amountValue) return alert("Ingresar monto");
 
   const data = {
     enrollmentId: currentPayment.enrollmentId,
     month: currentPayment.month,
-    paymentDate: document.getElementById("pay-date").value,
+    year: currentPayment.year,
+    paymentDate,
     method: document.getElementById("pay-method").value,
-    amount: parseFloat(document.getElementById("pay-amount").value),
+    amount: parseFloat(amountValue),
     reference: document.getElementById("pay-ref").value
   };
 
-  // 🧠 UPDATE
   if (currentPayment.id) {
     await updateDoc(doc(db, "payments", currentPayment.id), data);
-  }
-  // 🆕 CREATE
-  else {
+  } else {
     await addDoc(collection(db, "payments"), data);
   }
 
   closeModal();
-  loadGrid();
+  await loadGrid();
 };
