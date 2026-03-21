@@ -195,7 +195,30 @@ function renderCell(enrollmentId, courseId, month, payment) {
 // MODAL
 // =====================
 window.openPaymentModal = (enrollmentId, month) => {
+
   currentPayment = { enrollmentId, month };
+
+  const key = `${enrollmentId}_${month}`;
+  const existing = paymentsMap[key];
+
+  // 🧠 SI EXISTE → CARGAR DATOS
+  if (existing) {
+    document.getElementById("pay-date").value = existing.paymentDate?.substring(0,10) || "";
+    document.getElementById("pay-method").value = existing.method || "Efectivo";
+    document.getElementById("pay-amount").value = existing.amount || "";
+    document.getElementById("pay-ref").value = existing.reference || "";
+
+    currentPayment.id = existing.id; // 👈 IMPORTANTE
+  } else {
+    // 🧼 LIMPIAR FORM
+    document.getElementById("pay-date").value = "";
+    document.getElementById("pay-method").value = "Efectivo";
+    document.getElementById("pay-amount").value = "";
+    document.getElementById("pay-ref").value = "";
+
+    currentPayment.id = null;
+  }
+
   document.getElementById("payment-modal").style.display = "flex";
 };
 
