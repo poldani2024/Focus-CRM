@@ -9,6 +9,8 @@ import {
 
 const YEAR = new Date().getFullYear();
 
+const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+
 const orgSel = document.getElementById("filter-organizer");
 const locSel = document.getElementById("filter-location");
 const courseSel = document.getElementById("filter-course");
@@ -17,11 +19,12 @@ const studentSel = document.getElementById("filter-student");
 const head = document.getElementById("payments-head");
 const body = document.getElementById("payments-body");
 
-// =======================
+// =====================
 // LOAD ORGANIZERS
-// =======================
+// =====================
 async function loadOrganizers() {
   const snap = await getDocs(collection(db, "organizers"));
+
   orgSel.innerHTML = "<option value=''>Organizador</option>";
 
   snap.forEach(d => {
@@ -29,26 +32,40 @@ async function loadOrganizers() {
   });
 }
 
-// =======================
-// LOAD LOCATIONS
-// =======================
+// =====================
+// LOAD LOCATIONS (desde cursos)
+// =====================
 orgSel.addEventListener("change", async () => {
-  const snap = await getDocs(collection(db, "courses"));
+
+  const coursesSnap = await getDocs(collection(db, "courses"));
+
+  const locationsSet = new Set();
 
   locSel.innerHTML = "<option value=''>Sede</option>";
 
-  snap.forEach(d => {
+  coursesSnap.forEach(d => {
     const c = d.data();
+
     if (c.organizerId === orgSel.value) {
-      locSel.innerHTML += `<option value="${c.locationId}">${c.locationId}</option>`;
+      locationsSet.add(c.locationId);
+    }
+  });
+
+  // traer nombres reales
+  const locSnap = await getDocs(collection(db, "locations"));
+
+  locSnap.forEach(l => {
+    if (locationsSet.has(l.id)) {
+      locSel.innerHTML += `<option value="${l.id}">${l.data().name}</option>`;
     }
   });
 });
 
-// =======================
+// =====================
 // LOAD COURSES
-// =======================
+// =====================
 locSel.addEventListener("change", async () => {
+
   const snap = await getDocs(collection(db, "courses"));
 
   courseSel.innerHTML = "<option value=''>Curso</option>";
@@ -65,9 +82,9 @@ locSel.addEventListener("change", async () => {
   });
 });
 
-// =======================
-// LOAD STUDENTS
-// =======================
+// =====================
+// LOAD STUDENTS + GRID
+// =====================
 courseSel.addEventListener("change", async () => {
 
   const enrollSnap = await getDocs(
@@ -96,9 +113,9 @@ courseSel.addEventListener("change", async () => {
   loadGrid();
 });
 
-// =======================
+// =====================
 // GRID
-// =======================
+// =====================
 async function loadGrid() {
 
   const enrollSnap = await getDocs(
@@ -121,11 +138,14 @@ async function loadGrid() {
   });
 
   // HEADER
-  head.innerHTML = "<tr><th>Alumno</th>";
-  for (let m = 1; m <= 12; m++) {
-    head.innerHTML += `<th>${m}</th>`;
-  }
-  head.innerHTML += "</tr>";
+  let headerHTML = "<tr><th>Alumno</th>";
+
+  MONTHS.forEach(m => {
+    headerHTML += `<th>${m}</th>`;
+  });
+
+  headerHTML += "</tr>";
+  head.innerHTML = headerHTML;
 
   // BODY
   body.innerHTML = "";
@@ -155,9 +175,9 @@ async function loadGrid() {
   });
 }
 
-// =======================
+// =====================
 // TOGGLE
-// =======================
+// =====================
 window.togglePayment = async (enrollmentId, month) => {
 
   await addDoc(collection(db, "payments"), {
