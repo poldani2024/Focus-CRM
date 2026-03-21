@@ -1,29 +1,35 @@
 import { db } from "./firebase.js";
 import {
   collection,
-  query,
-  where,
   getDocs,
   addDoc,
   deleteDoc,
-  doc
+  doc,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
 
 const YEAR = new Date().getFullYear();
 
 const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 
+// SELECTS
 const orgSel = document.getElementById("filter-organizer");
 const locSel = document.getElementById("filter-location");
 const courseSel = document.getElementById("filter-course");
 const studentSel = document.getElementById("filter-student");
 
+// GRID
 const head = document.getElementById("payments-head");
 const body = document.getElementById("payments-body");
 
 // =====================
-// LOAD ORGANIZERS
+// INIT
+// =====================
+loadOrganizers();
+
+// =====================
+// ORGANIZADORES
 // =====================
 async function loadOrganizers() {
   const snap = await getDocs(collection(db, "organizers"));
@@ -36,36 +42,36 @@ async function loadOrganizers() {
 }
 
 // =====================
-// LOAD LOCATIONS (desde cursos)
+// SEDES
 // =====================
 orgSel.addEventListener("change", async () => {
 
   const coursesSnap = await getDocs(collection(db, "courses"));
-
   const locationsSet = new Set();
-
-  locSel.innerHTML = "<option value=''>Sede</option>";
 
   coursesSnap.forEach(d => {
     const c = d.data();
-
     if (c.organizerId === orgSel.value) {
       locationsSet.add(c.locationId);
     }
   });
 
-  // traer nombres reales
   const locSnap = await getDocs(collection(db, "locations"));
+
+  locSel.innerHTML = "<option value=''>Sede</option>";
 
   locSnap.forEach(l => {
     if (locationsSet.has(l.id)) {
       locSel.innerHTML += `<option value="${l.id}">${l.data().name}</option>`;
     }
   });
+
+  courseSel.innerHTML = "<option value=''>Curso</option>";
+  studentSel.innerHTML = "<option value=''>Alumno</option>";
 });
 
 // =====================
-// LOAD COURSES
+// CURSOS
 // =====================
 locSel.addEventListener("change", async () => {
 
@@ -83,10 +89,12 @@ locSel.addEventListener("change", async () => {
       courseSel.innerHTML += `<option value="${d.id}">${c.name}</option>`;
     }
   });
+
+  studentSel.innerHTML = "<option value=''>Alumno</option>";
 });
 
 // =====================
-// LOAD STUDENTS + GRID
+// ALUMNOS + GRID
 // =====================
 courseSel.addEventListener("change", async () => {
 
@@ -137,7 +145,10 @@ async function loadGrid() {
   const paymentsMap = {};
   paymentsSnap.forEach(d => {
     const p = d.data();
-    paymentsMap[`${p.enrollmentId}_${p.month}_${p.year}`] = true;
+    paymentsMap[`${p.enrollmentId}_${p.month}_${p.year}`] = {
+      id: d.id,
+      ...p
+    };
   });
 
   // HEADER
@@ -161,14 +172,12 @@ async function loadGrid() {
     for (let m = 1; m <= 12; m++) {
 
       const key = `${docSnap.id}_${m}_${YEAR}`;
-      const checked = paymentsMap[key];
+      const payment = paymentsMap[key];
 
       row += `
-        <td>
-          <input type="checkbox"
-            ${checked ? "checked" : ""}
-            onchange="togglePayment('${docSnap.id}', ${m})"
-          >
+        <td onclick="handlePaymentClick('${docSnap.id}', ${m})"
+            style="cursor:pointer;">
+          ${payment ? "✔" : ""}
         </td>
       `;
     }
@@ -179,9 +188,9 @@ async function loadGrid() {
 }
 
 // =====================
-// TOGGLE
+// CLICK EN CELDA
 // =====================
-window.togglePayment = async (enrollmentId, month) => {
+window.handlePaymentClick = async (enrollmentId, month) => {
 
   const q = query(
     collection(db, "payments"),
@@ -192,24 +201,60 @@ window.togglePayment = async (enrollmentId, month) => {
 
   const snap = await getDocs(q);
 
-  if (snap.empty) {
-    // 👉 NO EXISTE → CREAR
-    await addDoc(collection(db, "payments"), {
-      enrollmentId,
-      month,
-      year: YEAR,
-      status: "Pagado",
-      createdAt: new Date()
-    });
-
-  } else {
-    // 👉 EXISTE → ELIMINAR
-    const docId = snap.docs[0].id;
-    await deleteDoc(doc(db, "payments", docId));
+  // 👉 YA EXISTE → eliminar
+  if (!snap.empty) {
+    if (confirm("¿Eliminar pago?")) {
+      await deleteDoc(doc(db, "payments", snap.docs[0].id));
+      loadGrid();
+    }
+    return;
   }
 
-  loadGrid();
+  // 👉 NO EXISTE → abrir modal
+  document.getElementById("modal-enrollment").value = enrollmentId;
+  document.getElementById("modal-month").value = month;
+
+  document.getElementById("modal-date").value =
+    new Date().toISOString().split("T")[0];
+
+  document.getElementById("modal-amount").value = "";
+
+  document.getElementById("payment-modal").classList.remove("hidden");
 };
 
-// INIT
-loadOrganizers();
+// =====================
+// MODAL
+// =====================
+window.closeModal = () => {
+  document.getElementById("payment-modal").classList.add("hidden");
+};
+
+window.savePayment = async () => {
+
+  const enrollmentId = document.getElementById("modal-enrollment").value;
+  const month = parseInt(document.getElementById("modal-month").value);
+
+  const paymentDate = document.getElementById("modal-date").value;
+  const method = document.getElementById("modal-method").value;
+  const amount = parseFloat(document.getElementById("modal-amount").value);
+  const receipt = document.getElementById("modal-receipt").value;
+
+  if (!amount || !paymentDate) {
+    return alert("Completar datos");
+  }
+
+  await addDoc(collection(db, "payments"), {
+    enrollmentId,
+    month,
+    year: YEAR,
+    paymentDate,
+    method,
+    amount,
+    receiptNumber: receipt,
+    status: "Pagado",
+    createdAt: new Date()
+  });
+
+  closeModal();
+  loadGrid();
+};
