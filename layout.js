@@ -15,7 +15,15 @@ async function loadSidebar() {
 }
 
 loadSidebar();
+const currentPage = window.location.pathname.split("/").pop();
 
+if (
+  currentPage === "config-institutes.html" ||
+  currentPage === "config-organizers.html"
+) {
+  const submenu = document.getElementById("submenu-config");
+  if (submenu) submenu.style.display = "block";
+}
 function toggleSubmenu() {
   const submenu = document.getElementById("submenu-config");
   submenu.style.display =
