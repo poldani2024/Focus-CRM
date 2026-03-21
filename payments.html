@@ -1,47 +1,78 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pagos</title>
+window.loadGrid = async () => {
 
-<link rel="stylesheet" href="styles.css">
-</head>
+  const head = document.getElementById("payments-head");
+  const body = document.getElementById("payments-body");
 
-<body>
+  body.innerHTML = "";
 
-<div id="sidebar-container"></div>
+  // =====================
+  // HEADER (FIX 🔥)
+  // =====================
+  let headerHtml = "<tr><th>Alumno</th>";
 
-<div class="main">
+  for (let m = 1; m <= 12; m++) {
+    headerHtml += `<th>${m}</th>`;
+  }
 
-  <div class="header">
-    <h2>Gestión de Pagos</h2>
-  </div>
+  headerHtml += "</tr>";
 
-  <!-- FILTROS -->
-  <div class="box filters">
+  head.innerHTML = headerHtml;
 
-    <select id="filter-organizer"></select>
-    <select id="filter-location"></select>
-    <select id="filter-course"></select>
-    <select id="filter-student"></select>
+  // =====================
+  // DATA
+  // =====================
+  const enrollSnap = await getDocs(collection(db, "enrollments"));
+  const studentsSnap = await getDocs(collection(db, "students"));
+  const paymentsSnap = await getDocs(collection(db, "payments"));
+  const feesSnap = await getDocs(collection(db, "course_fees"));
 
-    <button class="btn-primary" onclick="loadGrid()">Filtrar</button>
+  // =====================
+  // MAPAS
+  // =====================
+  let studentsMap = {};
+  studentsSnap.forEach(d => studentsMap[d.id] = d.data());
 
-  </div>
+  paymentsMap = {};
+  paymentsSnap.forEach(d => {
+    const p = d.data();
+    paymentsMap[`${p.enrollmentId}_${p.month}`] = { id: d.id, ...p };
+  });
 
-  <!-- TABLA -->
-  <div class="box table-container">
-    <table class="payments-table">
-      <thead id="payments-head"></thead>
-      <tbody id="payments-body"></tbody>
-    </table>
-  </div>
+  feesMap = {};
+  feesSnap.forEach(d => {
+    const f = d.data();
+    feesMap[`${f.courseId}_${f.month}_${f.year}`] = f;
+  });
 
-</div>
+  // =====================
+  // FILAS
+  // =====================
+  let bodyHtml = "";
 
-<script src="layout.js"></script>
-<script type="module" src="./js/payments.js"></script>
+  enrollSnap.forEach(docSnap => {
 
-</body>
-</html>
+    const e = docSnap.data();
+    const student = studentsMap[e.studentId];
+
+    if (!student) return;
+
+    let row = `<tr><td>${student.name} ${student.lastname}</td>`;
+
+    for (let m = 1; m <= 12; m++) {
+
+      const payment = paymentsMap[`${docSnap.id}_${m}`];
+
+      row += `
+        <td onclick="togglePayment('${docSnap.id}', ${m})">
+          ${renderCell(docSnap.id, e.courseId, m, payment)}
+        </td>
+      `;
+    }
+
+    row += "</tr>";
+
+    bodyHtml += row;
+  });
+
+  body.innerHTML = bodyHtml;
+};
