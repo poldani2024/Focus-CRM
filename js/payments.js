@@ -1,11 +1,14 @@
 import { db } from "./firebase.js";
 import {
   collection,
+  query,
+  where,
   getDocs,
   addDoc,
-  query,
-  where
+  deleteDoc,
+  doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 
 const YEAR = new Date().getFullYear();
 
@@ -180,13 +183,30 @@ async function loadGrid() {
 // =====================
 window.togglePayment = async (enrollmentId, month) => {
 
-  await addDoc(collection(db, "payments"), {
-    enrollmentId,
-    month,
-    year: YEAR,
-    status: "Pagado",
-    createdAt: new Date()
-  });
+  const q = query(
+    collection(db, "payments"),
+    where("enrollmentId", "==", enrollmentId),
+    where("month", "==", month),
+    where("year", "==", YEAR)
+  );
+
+  const snap = await getDocs(q);
+
+  if (snap.empty) {
+    // 👉 NO EXISTE → CREAR
+    await addDoc(collection(db, "payments"), {
+      enrollmentId,
+      month,
+      year: YEAR,
+      status: "Pagado",
+      createdAt: new Date()
+    });
+
+  } else {
+    // 👉 EXISTE → ELIMINAR
+    const docId = snap.docs[0].id;
+    await deleteDoc(doc(db, "payments", docId));
+  }
 
   loadGrid();
 };
