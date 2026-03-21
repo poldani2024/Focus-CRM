@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pagos</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pagos</title>
 
-  <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
@@ -15,8 +15,7 @@
 <div class="main">
 
   <div class="header">
-    <h2>Pagos</h2>
-    <p class="subtitle">Control mensual</p>
+    <h2>Gestión de Pagos</h2>
   </div>
 
   <!-- FILTROS -->
@@ -27,10 +26,12 @@
     <select id="filter-course"></select>
     <select id="filter-student"></select>
 
+    <button class="btn-primary" onclick="loadGrid()">Filtrar</button>
+
   </div>
 
-  <!-- GRILLA -->
-  <div class="box" style="overflow:auto;">
+  <!-- TABLA -->
+  <div class="box table-container">
     <table class="payments-table">
       <thead id="payments-head"></thead>
       <tbody id="payments-body"></tbody>
@@ -38,48 +39,7 @@
   </div>
 
 </div>
-<!-- MODAL -->
-<div id="payment-modal" class="modal hidden">
 
-  <div class="modal-content">
-
-    <h3>Registrar Pago</h3>
-
-    <input type="hidden" id="modal-enrollment">
-    <input type="hidden" id="modal-month">
-
-    <div class="form-group">
-      <label>Fecha de Pago</label>
-      <input type="date" id="modal-date">
-    </div>
-
-    <div class="form-group">
-      <label>Forma de Pago</label>
-      <select id="modal-method">
-        <option>Efectivo</option>
-        <option>Transferencia</option>
-        <option>Tarjeta</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label>Importe</label>
-      <input type="number" id="modal-amount">
-    </div>
-
-    <div class="form-group">
-      <label>N° Comprobante</label>
-      <input type="text" id="modal-receipt">
-    </div>
-
-    <div class="modal-actions">
-      <button onclick="closeModal()">Cancelar</button>
-      <button class="btn-primary" onclick="savePayment()">Guardar</button>
-    </div>
-
-  </div>
-
-</div>
 <script src="layout.js"></script>
 <script type="module" src="./js/payments.js"></script>
 
