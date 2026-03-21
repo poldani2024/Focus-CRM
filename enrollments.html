@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inscripciones</title>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<div id="sidebar-container"></div>
+
+<div class="main">
+
+  <div class="header">
+    <h2>Inscripciones</h2>
+    <p class="subtitle">Asignar alumnos a cursos</p>
+  </div>
+
+  <div class="grid-courses">
+
+    <!-- FORM -->
+    <div class="box">
+
+      <h3>Nueva Inscripción</h3>
+
+      <input type="hidden" id="enroll-id">
+
+      <div class="form-group">
+        <label>Alumno</label>
+        <select id="enroll-student"></select>
+      </div>
+
+      <div class="form-group">
+        <label>Curso</label>
+        <select id="enroll-course"></select>
+      </div>
+
+      <div class="form-group">
+        <label>Fecha Inicio</label>
+        <input type="date" id="enroll-date">
+      </div>
+
+      <div class="form-group">
+        <label>Estado</label>
+        <select id="enroll-status">
+          <option>Activo</option>
+          <option>Baja</option>
+          <option>Finalizado</option>
+        </select>
+      </div>
+
+      <button class="btn-primary full" id="save-enroll">Guardar</button>
+
+    </div>
+
+    <!-- LISTA -->
+    <div class="box">
+      <h3>Inscripciones</h3>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="layout.js"></script>
+<script type="module" src="./js/enrollments.js"></script>
+
+</body>
+</html>
