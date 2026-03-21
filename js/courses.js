@@ -5,7 +5,10 @@ import {
   getDocs,
   updateDoc,
   deleteDoc,
-  doc
+  doc,
+  query,
+  where,
+  orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 let currentCourseId = null;
@@ -83,10 +86,13 @@ async function loadCourses() {
   snap.forEach(d => {
     const c = d.data();
 
+    const name = c.name || "Sin nombre";
+    const status = c.status || "Sin estado";
+
     list.innerHTML += `
       <div class="course-item" onclick="editCourse('${d.id}')">
-        <strong>${c.name}</strong>
-        <p>${c.status}</p>
+        <strong>${name}</strong>
+        <p>${status}</p>
       </div>
     `;
   });
@@ -105,13 +111,13 @@ window.editCourse = async (id) => {
 
       currentCourseId = id;
 
-      document.getElementById("course-organizer").value = c.organizerId;
-      document.getElementById("course-location").value = c.locationId;
-      document.getElementById("course-name").value = c.name;
-      document.getElementById("course-start").value = c.startDate;
-      document.getElementById("course-end").value = c.endDate;
-      document.getElementById("course-price").value = c.price;
-      document.getElementById("course-status").value = c.status;
+      document.getElementById("course-organizer").value = c.organizerId || "";
+      document.getElementById("course-location").value = c.locationId || "";
+      document.getElementById("course-name").value = c.name || "";
+      document.getElementById("course-start").value = c.startDate || "";
+      document.getElementById("course-end").value = c.endDate || "";
+      document.getElementById("course-price").value = parseFloat(c.price) || 0;
+      document.getElementById("course-status").value = c.status || "Plan";
 
       loadFees();
     }
@@ -127,35 +133,43 @@ function clearForm() {
 }
 
 // =====================
-// CUOTAS
+// CUOTAS (ORDENADAS 🔥)
 // =====================
 async function loadFees() {
 
   if (!currentCourseId) return;
 
-  const snap = await getDocs(collection(db, "course_fees"));
-  const tbody = document.getElementById("fees-body");
+  const snap = await getDocs(
+    query(
+      collection(db, "course_fees"),
+      where("courseId", "==", currentCourseId),
+      orderBy("year"),
+      orderBy("month")
+    )
+  );
 
+  const tbody = document.getElementById("fees-body");
   tbody.innerHTML = "";
 
   snap.forEach(d => {
     const f = d.data();
 
-    if (f.courseId === currentCourseId) {
-      tbody.innerHTML += `
-        <tr>
-          <td>${f.month}</td>
-          <td>${f.year}</td>
-          <td><input value="${f.amount}" onchange="updateFee('${d.id}','amount',this.value)"></td>
-          <td><input type="date" value="${f.dueDate}" onchange="updateFee('${d.id}','dueDate',this.value)"></td>
-          <td><input value="${f.interestPercent}" onchange="updateFee('${d.id}','interestPercent',this.value)"></td>
-          <td><button onclick="deleteFee('${d.id}')">🗑</button></td>
-        </tr>
-      `;
-    }
+    tbody.innerHTML += `
+      <tr>
+        <td>${f.month}</td>
+        <td>${f.year}</td>
+        <td><input value="${f.amount}" onchange="updateFee('${d.id}','amount',this.value)"></td>
+        <td><input type="date" value="${f.dueDate}" onchange="updateFee('${d.id}','dueDate',this.value)"></td>
+        <td><input value="${f.interestPercent}" onchange="updateFee('${d.id}','interestPercent',this.value)"></td>
+        <td><button onclick="deleteFee('${d.id}')">🗑</button></td>
+      </tr>
+    `;
   });
 }
 
+// =====================
+// GENERAR CUOTAS
+// =====================
 window.generateFees = async () => {
 
   if (!currentCourseId) return alert("Guardar curso primero");
@@ -184,6 +198,9 @@ window.generateFees = async () => {
   loadFees();
 };
 
+// =====================
+// UPDATE
+// =====================
 window.updateFee = async (id, field, value) => {
 
   await updateDoc(doc(db, "course_fees", id), {
@@ -193,6 +210,9 @@ window.updateFee = async (id, field, value) => {
   });
 };
 
+// =====================
+// DELETE
+// =====================
 window.deleteFee = async (id) => {
 
   if (!confirm("Eliminar?")) return;
