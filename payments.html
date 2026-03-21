@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pagos</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pagos</title>
 
-<link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
@@ -15,47 +15,28 @@
 <div class="main">
 
   <div class="header">
-    <div>
-      <h2>Gestión de Pagos</h2>
-      <p class="subtitle">Control mensual de cuotas por alumno</p>
-    </div>
+    <h2>Pagos</h2>
+    <p class="subtitle">Control mensual por inscripción</p>
   </div>
 
-  <div class="box filters">
+  <!-- FILTROS -->
+  <div class="box">
+    <label>Curso</label>
+    <select id="filter-course"></select>
+  </div>
 
-    <div class="row">
-      <div class="form-group">
-        <label>Organizador</label>
-        <select>
-          <option>Todos</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Sede</label>
-        <select>
-          <option>Todos</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Curso</label>
-        <select>
-          <option>Todos</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Alumno</label>
-        <input type="text">
-      </div>
-    </div>
-
+  <!-- GRILLA -->
+  <div class="box" style="overflow:auto;">
+    <table class="payments-table">
+      <thead id="payments-head"></thead>
+      <tbody id="payments-body"></tbody>
+    </table>
   </div>
 
 </div>
 
 <script src="layout.js"></script>
+<script type="module" src="./js/payments.js"></script>
 
 </body>
 </html>
