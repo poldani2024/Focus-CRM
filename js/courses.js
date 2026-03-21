@@ -1,133 +1,118 @@
-import { db } from "./firebase.js";
-import {
-  collection,
-  addDoc,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  doc,
-  query,
-  where
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cursos</title>
 
-let currentCourseId = null;
+<link rel="stylesheet" href="styles.css">
+</head>
 
-// =====================
-// GUARDAR CURSO
-// =====================
-window.saveCourse = async () => {
+<body>
 
-  const name = document.getElementById("course-name").value;
-  const start = document.getElementById("course-start").value;
-  const end = document.getElementById("course-end").value;
-  const price = parseFloat(document.getElementById("course-price").value);
+<div id="sidebar-container"></div>
 
-  if (!name) return alert("Nombre requerido");
+<div class="main">
 
-  const data = {
-    name,
-    startDate: start,
-    endDate: end,
-    price,
-    createdAt: new Date()
-  };
+  <div class="header">
+    <h2>Gestión de Cursos</h2>
+  </div>
 
-  if (!currentCourseId) {
-    const ref = await addDoc(collection(db, "courses"), data);
-    currentCourseId = ref.id;
-  } else {
-    await updateDoc(doc(db, "courses", currentCourseId), data);
-  }
+  <div class="grid-courses">
 
-  alert("Guardado");
-};
+    <!-- FORM -->
+    <div class="box">
 
-// =====================
-// GENERAR CUOTAS
-// =====================
-window.generateFees = async () => {
+      <h3>Curso</h3>
 
-  if (!currentCourseId) return alert("Guardar curso primero");
+      <input type="hidden" id="course-id">
 
-  const start = document.getElementById("course-start").value;
-  const end = document.getElementById("course-end").value;
-  const price = parseFloat(document.getElementById("course-price").value);
+      <div class="form-group">
+        <label>Organizador</label>
+        <select id="course-organizer"></select>
+      </div>
 
-  if (!start || !end || !price) {
-    return alert("Completar datos");
-  }
+      <div class="form-group">
+        <label>Sede</label>
+        <select id="course-location"></select>
+      </div>
 
-  let current = new Date(start);
-  const endDate = new Date(end);
+      <div class="form-group">
+        <label>Nombre</label>
+        <input id="course-name">
+      </div>
 
-  while (current <= endDate) {
+      <div class="form-group">
+        <label>Fecha Inicio</label>
+        <input type="date" id="course-start">
+      </div>
 
-    await addDoc(collection(db, "course_fees"), {
-      courseId: currentCourseId,
-      month: current.getMonth() + 1,
-      year: current.getFullYear(),
-      amount: price,
-      dueDate: new Date(current.getFullYear(), current.getMonth(), 10)
-        .toISOString().split("T")[0],
-      interestPercent: 10,
-      createdAt: new Date()
-    });
+      <div class="form-group">
+        <label>Fecha Fin</label>
+        <input type="date" id="course-end">
+      </div>
 
-    current.setMonth(current.getMonth() + 1);
-  }
+      <div class="form-group">
+        <label>Precio Base</label>
+        <input type="number" id="course-price">
+      </div>
 
-  loadFees();
-};
+      <div class="form-group">
+        <label>Estado</label>
+        <select id="course-status">
+          <option>Plan</option>
+          <option>Activo</option>
+          <option>Finalizado</option>
+          <option>Cancelado</option>
+        </select>
+      </div>
 
-// =====================
-// CARGAR CUOTAS
-// =====================
-async function loadFees() {
+      <button class="btn-primary full" onclick="saveCourse()">
+        Guardar
+      </button>
 
-  if (!currentCourseId) return;
+    </div>
 
-  const snap = await getDocs(
-    query(collection(db, "course_fees"), where("courseId", "==", currentCourseId))
-  );
+    <!-- LISTA -->
+    <div class="box">
 
-  const tbody = document.getElementById("fees-body");
-  tbody.innerHTML = "";
+      <h3>Cursos</h3>
 
-  snap.forEach(d => {
-    const f = d.data();
+      <div id="courses-list"></div>
 
-    tbody.innerHTML += `
-      <tr>
-        <td>${f.month}</td>
-        <td>${f.year}</td>
-        <td><input value="${f.amount}" onchange="updateFee('${d.id}','amount',this.value)"></td>
-        <td><input type="date" value="${f.dueDate}" onchange="updateFee('${d.id}','dueDate',this.value)"></td>
-        <td><input value="${f.interestPercent}" onchange="updateFee('${d.id}','interestPercent',this.value)"></td>
-        <td><button onclick="deleteFee('${d.id}')">🗑</button></td>
-      </tr>
-    `;
-  });
-}
+    </div>
 
-// =====================
-// UPDATE
-// =====================
-window.updateFee = async (id, field, value) => {
+  </div>
 
-  await updateDoc(doc(db, "course_fees", id), {
-    [field]: field === "amount" || field === "interestPercent"
-      ? parseFloat(value)
-      : value
-  });
-};
+  <!-- CUOTAS -->
+  <div class="box">
 
-// =====================
-// DELETE
-// =====================
-window.deleteFee = async (id) => {
+    <h3>Cuotas</h3>
 
-  if (!confirm("Eliminar cuota?")) return;
+    <button class="btn-primary" onclick="generateFees()">
+      Generar Cuotas
+    </button>
 
-  await deleteDoc(doc(db, "course_fees", id));
-  loadFees();
-};
+    <table class="fees-table">
+      <thead>
+        <tr>
+          <th>Mes</th>
+          <th>Año</th>
+          <th>Monto</th>
+          <th>Vencimiento</th>
+          <th>%</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="fees-body"></tbody>
+    </table>
+
+  </div>
+
+</div>
+
+<script src="layout.js"></script>
+<script type="module" src="./js/courses.js"></script>
+
+</body>
+</html>
