@@ -389,7 +389,37 @@ body {
   .grid {
     grid-template-columns: 1fr;
   }
+.filters {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
 
+.payments-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 1000px;
+}
+
+.payments-table th,
+.payments-table td {
+  border: 1px solid #eee;
+  padding: 8px;
+  text-align: center;
+}
+
+.payments-table th {
+  background: #fafafa;
+}
+
+.payments-table td:first-child,
+.payments-table th:first-child {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  text-align: left;
+  min-width: 200px;
+}
   .header {
     flex-direction: column;
     align-items: flex-start;
