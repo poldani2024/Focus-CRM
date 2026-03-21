@@ -1,20 +1,22 @@
-<script type="module" src="config-institutes.js"></script>
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sedes</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sedes</title>
 
-<link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
 
+<!-- SIDEBAR -->
 <div id="sidebar-container"></div>
 
+<!-- MAIN -->
 <div class="main">
 
+  <!-- HEADER -->
   <div class="header">
     <div>
       <h2>Sedes</h2>
@@ -22,48 +24,51 @@
     </div>
   </div>
 
+  <!-- GRID -->
   <div class="grid-courses">
 
+    <!-- FORM -->
     <div class="box">
       <h3>Alta / Edición</h3>
 
+      <!-- ID oculto -->
+      <input type="hidden" id="location-id">
+
       <div class="form-group">
         <label>Nombre</label>
-        <input type="text">
+        <input type="text" id="location-name" placeholder="Ej: Museo Cochet">
       </div>
 
       <div class="form-group">
         <label>Domicilio</label>
-        <input type="text">
+        <input type="text" id="location-address">
       </div>
 
       <div class="form-group">
         <label>Localidad</label>
-        <select>
-          <option>Rosario</option>
-          <option>Funes</option>
-          <option>Roldán</option>
+        <select id="location-city">
+          <option value="Rosario">Rosario</option>
+          <option value="Funes">Funes</option>
+          <option value="Roldán">Roldán</option>
         </select>
       </div>
 
-      <button class="btn-primary full">Guardar</button>
+      <button class="btn-primary full" id="save-btn">Guardar</button>
     </div>
 
+    <!-- LISTA -->
     <div class="box">
       <h3>Listado</h3>
-
-      <div class="course-item">
-        <strong>Museo Cochet</strong>
-        <span class="tag green">Activo</span>
-      </div>
-
+      <!-- Se llena dinámicamente -->
     </div>
 
   </div>
 
 </div>
 
+<!-- SCRIPTS -->
 <script src="layout.js"></script>
+<script type="module" src="./js/config-institutes.js"></script>
 
 </body>
 </html>
