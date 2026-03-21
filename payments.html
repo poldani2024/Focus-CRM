@@ -38,7 +38,48 @@
   </div>
 
 </div>
+<!-- MODAL -->
+<div id="payment-modal" class="modal hidden">
 
+  <div class="modal-content">
+
+    <h3>Registrar Pago</h3>
+
+    <input type="hidden" id="modal-enrollment">
+    <input type="hidden" id="modal-month">
+
+    <div class="form-group">
+      <label>Fecha de Pago</label>
+      <input type="date" id="modal-date">
+    </div>
+
+    <div class="form-group">
+      <label>Forma de Pago</label>
+      <select id="modal-method">
+        <option>Efectivo</option>
+        <option>Transferencia</option>
+        <option>Tarjeta</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Importe</label>
+      <input type="number" id="modal-amount">
+    </div>
+
+    <div class="form-group">
+      <label>N° Comprobante</label>
+      <input type="text" id="modal-receipt">
+    </div>
+
+    <div class="modal-actions">
+      <button onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary" onclick="savePayment()">Guardar</button>
+    </div>
+
+  </div>
+
+</div>
 <script src="layout.js"></script>
 <script type="module" src="./js/payments.js"></script>
 
