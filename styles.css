@@ -18,7 +18,31 @@
   font-size: 14px;
   opacity: 0.85;
 }
+.payments-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 900px;
+}
 
+.payments-table th,
+.payments-table td {
+  border: 1px solid #eee;
+  padding: 8px;
+  text-align: center;
+}
+
+.payments-table th {
+  position: sticky;
+  top: 0;
+  background: #fff;
+}
+
+.payments-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  text-align: left;
+}
 /* INDENTACIÓN */
 .menu-item.sub {
   padding-left: 25px;
