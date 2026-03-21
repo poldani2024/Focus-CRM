@@ -1,50 +1,60 @@
-<script type="module" src="config-organizers.js"></script>
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Organizadores</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Organizadores</title>
 
-<link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
 
+<!-- SIDEBAR -->
 <div id="sidebar-container"></div>
 
+<!-- MAIN -->
 <div class="main">
 
+  <!-- HEADER -->
   <div class="header">
     <div>
       <h2>Organizadores</h2>
+      <p class="subtitle">Gestión de coordinadores de cursos</p>
     </div>
   </div>
 
+  <!-- GRID -->
   <div class="grid-courses">
 
+    <!-- FORM -->
     <div class="box">
-      <h3>Alta</h3>
+      <h3>Alta / Edición</h3>
 
-      <input type="text" placeholder="Nombre">
+      <!-- ID oculto para edición -->
+      <input type="hidden" id="organizer-id">
 
-      <button class="btn-primary full">Guardar</button>
-    </div>
-
-    <div class="box">
-      <h3>Listado</h3>
-
-      <div class="course-item">
-        <strong>Italiano Essenziale</strong>
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" id="organizer-name" placeholder="Ej: Italiano Essenziale">
       </div>
 
+      <button class="btn-primary full" id="save-btn">Guardar</button>
+    </div>
+
+    <!-- LISTA -->
+    <div class="box">
+      <h3>Listado</h3>
+      <!-- Se llena dinámicamente -->
     </div>
 
   </div>
 
 </div>
 
+<!-- SCRIPTS -->
 <script src="layout.js"></script>
+<script type="module" src="./js/config-organizers.js"></script>
 
 </body>
 </html>
