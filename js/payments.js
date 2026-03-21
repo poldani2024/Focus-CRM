@@ -36,11 +36,24 @@ window.loadGrid = async () => {
   const head = document.getElementById("payments-head");
   const body = document.getElementById("payments-body");
 
-  head.innerHTML = "";
   body.innerHTML = "";
 
-  // HEADER
- head.innerHTML = "<tr><th>Alumno</th>";
+  // =====================
+  // HEADER (FIX 🔥)
+  // =====================
+  let headerHtml = "<tr><th>Alumno</th>";
+
+  for (let m = 1; m <= 12; m++) {
+    headerHtml += `<th>${m}</th>`;
+  }
+
+  headerHtml += "</tr>";
+
+  head.innerHTML = headerHtml;
+
+  // =====================
+  // DATA
+  // =====================
   const enrollSnap = await getDocs(collection(db, "enrollments"));
   const studentsSnap = await getDocs(collection(db, "students"));
   const paymentsSnap = await getDocs(collection(db, "payments"));
@@ -49,7 +62,6 @@ window.loadGrid = async () => {
   // =====================
   // MAPAS
   // =====================
-
   let studentsMap = {};
   studentsSnap.forEach(d => studentsMap[d.id] = d.data());
 
@@ -68,6 +80,8 @@ window.loadGrid = async () => {
   // =====================
   // FILAS
   // =====================
+  let bodyHtml = "";
+
   enrollSnap.forEach(docSnap => {
 
     const e = docSnap.data();
@@ -89,10 +103,11 @@ window.loadGrid = async () => {
     }
 
     row += "</tr>";
-    body.innerHTML += row;
 
+    bodyHtml += row;
   });
 
+  body.innerHTML = bodyHtml;
 };
 
 // =====================
