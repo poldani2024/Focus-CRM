@@ -1,78 +1,110 @@
-window.loadGrid = async () => {
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pagos</title>
 
-  const head = document.getElementById("payments-head");
-  const body = document.getElementById("payments-body");
+<link rel="stylesheet" href="styles.css">
 
-  body.innerHTML = "";
+<style>
+.table-container {
+  overflow-x: auto;
+}
 
-  // =====================
-  // HEADER (FIX 🔥)
-  // =====================
-  let headerHtml = "<tr><th>Alumno</th>";
+.payments-table {
+  width: 100%;
+  border-collapse: collapse;
+}
 
-  for (let m = 1; m <= 12; m++) {
-    headerHtml += `<th>${m}</th>`;
-  }
+.payments-table th,
+.payments-table td {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+}
 
-  headerHtml += "</tr>";
+.payments-table th {
+  background: #f5f6fa;
+}
 
-  head.innerHTML = headerHtml;
+.modal {
+  display:none;
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,0.4);
+  align-items:center;
+  justify-content:center;
+}
 
-  // =====================
-  // DATA
-  // =====================
-  const enrollSnap = await getDocs(collection(db, "enrollments"));
-  const studentsSnap = await getDocs(collection(db, "students"));
-  const paymentsSnap = await getDocs(collection(db, "payments"));
-  const feesSnap = await getDocs(collection(db, "course_fees"));
+.modal-content {
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  width:300px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+</style>
+</head>
 
-  // =====================
-  // MAPAS
-  // =====================
-  let studentsMap = {};
-  studentsSnap.forEach(d => studentsMap[d.id] = d.data());
+<body>
 
-  paymentsMap = {};
-  paymentsSnap.forEach(d => {
-    const p = d.data();
-    paymentsMap[`${p.enrollmentId}_${p.month}`] = { id: d.id, ...p };
-  });
+<div id="sidebar-container"></div>
 
-  feesMap = {};
-  feesSnap.forEach(d => {
-    const f = d.data();
-    feesMap[`${f.courseId}_${f.month}_${f.year}`] = f;
-  });
+<div class="main">
 
-  // =====================
-  // FILAS
-  // =====================
-  let bodyHtml = "";
+  <div class="header">
+    <h2>Gestión de Pagos</h2>
+  </div>
 
-  enrollSnap.forEach(docSnap => {
+  <!-- FILTROS -->
+  <div class="box">
+    <select id="filter-organizer" onchange="onOrganizerChange()"></select>
+    <select id="filter-location" onchange="onLocationChange()"></select>
+    <select id="filter-course" onchange="onCourseChange()"></select>
+    <select id="filter-student"></select>
 
-    const e = docSnap.data();
-    const student = studentsMap[e.studentId];
+    <button class="btn-primary" onclick="loadGrid()">Filtrar</button>
+  </div>
 
-    if (!student) return;
+  <!-- TABLA -->
+  <div class="box table-container">
+    <table class="payments-table">
+      <thead id="payments-head"></thead>
+      <tbody id="payments-body"></tbody>
+    </table>
+  </div>
 
-    let row = `<tr><td>${student.name} ${student.lastname}</td>`;
+</div>
 
-    for (let m = 1; m <= 12; m++) {
+<!-- MODAL -->
+<div id="payment-modal" class="modal">
+  <div class="modal-content">
 
-      const payment = paymentsMap[`${docSnap.id}_${m}`];
+    <h3>Registrar Pago</h3>
 
-      row += `
-        <td onclick="togglePayment('${docSnap.id}', ${m})">
-          ${renderCell(docSnap.id, e.courseId, m, payment)}
-        </td>
-      `;
-    }
+    <input type="date" id="pay-date">
 
-    row += "</tr>";
+    <select id="pay-method">
+      <option>Efectivo</option>
+      <option>Transferencia</option>
+      <option>Tarjeta</option>
+    </select>
 
-    bodyHtml += row;
-  });
+    <input type="number" id="pay-amount" placeholder="Monto">
+    <input type="text" id="pay-ref" placeholder="Comprobante">
 
-  body.innerHTML = bodyHtml;
-};
+    <button class="btn-primary" onclick="savePayment()">Guardar</button>
+    <button onclick="closeModal()">Cancelar</button>
+
+  </div>
+</div>
+
+<script src="layout.js"></script>
+<script type="module" src="./js/payments.js"></script>
+
+</body>
+</html>
