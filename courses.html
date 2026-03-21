@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cursos</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cursos</title>
 
-  <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
@@ -18,7 +18,7 @@
   <div class="header">
     <div>
       <h2>Gestión de Cursos</h2>
-      <p class="subtitle">Administración de cursos por organizador y sede</p>
+      <p class="subtitle">Administración y cuotas</p>
     </div>
   </div>
 
@@ -29,81 +29,59 @@
 
       <h3>Alta / Edición</h3>
 
-      <!-- ID oculto -->
       <input type="hidden" id="course-id">
 
       <div class="form-group">
-        <label>Organizador</label>
-        <select id="course-organizer"></select>
+        <label>Nombre</label>
+        <input id="course-name">
       </div>
 
       <div class="form-group">
-        <label>Sede</label>
-        <select id="course-location"></select>
+        <label>Fecha Inicio</label>
+        <input type="date" id="course-start">
       </div>
 
       <div class="form-group">
-        <label>Nombre del Curso</label>
-        <input type="text" id="course-name">
+        <label>Fecha Fin</label>
+        <input type="date" id="course-end">
       </div>
 
       <div class="form-group">
-        <label>Descripción</label>
-        <textarea id="course-description"></textarea>
-      </div>
-
-      <div class="form-group">
-        <label>Total de Horas</label>
-        <input type="number" id="course-hours">
-      </div>
-
-      <div class="form-group">
-        <label>Días</label>
-        <div class="days">
-          <label><input type="checkbox" value="L"> L</label>
-          <label><input type="checkbox" value="M"> M</label>
-          <label><input type="checkbox" value="X"> X</label>
-          <label><input type="checkbox" value="J"> J</label>
-          <label><input type="checkbox" value="V"> V</label>
-          <label><input type="checkbox" value="S"> S</label>
-          <label><input type="checkbox" value="D"> D</label>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="form-group">
-          <label>Hora Inicio</label>
-          <input type="time" id="course-start">
-        </div>
-
-        <div class="form-group">
-          <label>Hora Fin</label>
-          <input type="time" id="course-end">
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Costo ($)</label>
+        <label>Precio Base</label>
         <input type="number" id="course-price">
       </div>
 
-      <div class="form-group">
-        <label>Estado</label>
-        <select id="course-status">
-          <option>Plan</option>
-          <option>Activo</option>
-          <option>Finalizado</option>
-          <option>Cancelado</option>
-        </select>
-      </div>
-
-      <button class="btn-primary full" id="save-course">Guardar</button>
+      <button class="btn-primary full" onclick="saveCourse()">
+        Guardar Curso
+      </button>
 
     </div>
 
-    <!-- LISTA -->
+    <!-- CUOTAS -->
     <div class="box">
-      <h3>Cursos</h3>
+
+      <h3>Cuotas</h3>
+
+      <button class="btn-primary" onclick="generateFees()">
+        Generar Cuotas
+      </button>
+
+      <div style="overflow:auto; margin-top:10px;">
+        <table class="fees-table">
+          <thead>
+            <tr>
+              <th>Mes</th>
+              <th>Año</th>
+              <th>Monto</th>
+              <th>Vencimiento</th>
+              <th>%</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="fees-body"></tbody>
+        </table>
+      </div>
+
     </div>
 
   </div>
