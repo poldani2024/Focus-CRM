@@ -178,24 +178,55 @@ window.generateFees = async () => {
   const end = new Date(document.getElementById("course-end").value);
   const price = parseFloat(document.getElementById("course-price").value);
 
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return alert("Completar fecha de inicio y fin");
+  }
+
+  if (Number.isNaN(price)) {
+    return alert("Completar precio base");
+  }
+
+  const existingFeesSnap = await getDocs(
+    query(collection(db, "course_fees"), where("courseId", "==", currentCourseId))
+  );
+
+  const existingPeriods = new Set();
+  existingFeesSnap.forEach(docSnap => {
+    const fee = docSnap.data();
+    existingPeriods.add(`${fee.month}_${fee.year}`);
+  });
+
   let current = new Date(start);
+  let createdCount = 0;
 
   while (current <= end) {
+    const month = current.getMonth() + 1;
+    const year = current.getFullYear();
+    const periodKey = `${month}_${year}`;
 
-    await addDoc(collection(db, "course_fees"), {
-      courseId: currentCourseId,
-      month: current.getMonth() + 1,
-      year: current.getFullYear(),
-      amount: price,
-      dueDate: new Date(current.getFullYear(), current.getMonth(), 10)
-        .toISOString().split("T")[0],
-      interestPercent: 10
-    });
+    if (!existingPeriods.has(periodKey)) {
+      await addDoc(collection(db, "course_fees"), {
+        courseId: currentCourseId,
+        month,
+        year,
+        amount: price,
+        dueDate: new Date(year, current.getMonth(), 10)
+          .toISOString().split("T")[0],
+        interestPercent: 10
+      });
+
+      existingPeriods.add(periodKey);
+      createdCount += 1;
+    }
 
     current.setMonth(current.getMonth() + 1);
   }
 
-  loadFees();
+  await loadFees();
+
+  if (createdCount === 0) {
+    alert("No se generaron cuotas nuevas porque los períodos ya existían");
+  }
 };
 
 // =====================
