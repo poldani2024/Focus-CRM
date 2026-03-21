@@ -15,3 +15,9 @@ async function loadSidebar() {
 }
 
 loadSidebar();
+
+function toggleSubmenu() {
+  const submenu = document.getElementById("submenu-config");
+  submenu.style.display =
+    submenu.style.display === "block" ? "none" : "block";
+}
