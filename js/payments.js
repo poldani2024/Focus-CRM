@@ -4,257 +4,179 @@ import {
   getDocs,
   addDoc,
   deleteDoc,
-  doc,
-  query,
-  where
+  doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const YEAR = new Date().getFullYear();
+let feesMap = {};
+let paymentsMap = {};
 
-const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-
-// SELECTS
-const orgSel = document.getElementById("filter-organizer");
-const locSel = document.getElementById("filter-location");
-const courseSel = document.getElementById("filter-course");
-const studentSel = document.getElementById("filter-student");
-
-// GRID
-const head = document.getElementById("payments-head");
-const body = document.getElementById("payments-body");
+loadFilters();
 
 // =====================
-// INIT
+// FILTROS
 // =====================
-loadOrganizers();
+async function loadFilters() {
 
-// =====================
-// ORGANIZADORES
-// =====================
-async function loadOrganizers() {
-  const snap = await getDocs(collection(db, "organizers"));
+  const orgSnap = await getDocs(collection(db, "organizers"));
+  const orgSel = document.getElementById("filter-organizer");
 
   orgSel.innerHTML = "<option value=''>Organizador</option>";
-
-  snap.forEach(d => {
+  orgSnap.forEach(d => {
     orgSel.innerHTML += `<option value="${d.id}">${d.data().name}</option>`;
-  });
-}
-
-// =====================
-// SEDES
-// =====================
-orgSel.addEventListener("change", async () => {
-
-  const coursesSnap = await getDocs(collection(db, "courses"));
-  const locationsSet = new Set();
-
-  coursesSnap.forEach(d => {
-    const c = d.data();
-    if (c.organizerId === orgSel.value) {
-      locationsSet.add(c.locationId);
-    }
-  });
-
-  const locSnap = await getDocs(collection(db, "locations"));
-
-  locSel.innerHTML = "<option value=''>Sede</option>";
-
-  locSnap.forEach(l => {
-    if (locationsSet.has(l.id)) {
-      locSel.innerHTML += `<option value="${l.id}">${l.data().name}</option>`;
-    }
-  });
-
-  courseSel.innerHTML = "<option value=''>Curso</option>";
-  studentSel.innerHTML = "<option value=''>Alumno</option>";
-});
-
-// =====================
-// CURSOS
-// =====================
-locSel.addEventListener("change", async () => {
-
-  const snap = await getDocs(collection(db, "courses"));
-
-  courseSel.innerHTML = "<option value=''>Curso</option>";
-
-  snap.forEach(d => {
-    const c = d.data();
-
-    if (
-      c.organizerId === orgSel.value &&
-      c.locationId === locSel.value
-    ) {
-      courseSel.innerHTML += `<option value="${d.id}">${c.name}</option>`;
-    }
-  });
-
-  studentSel.innerHTML = "<option value=''>Alumno</option>";
-});
-
-// =====================
-// ALUMNOS + GRID
-// =====================
-courseSel.addEventListener("change", async () => {
-
-  const enrollSnap = await getDocs(
-    query(collection(db, "enrollments"), where("courseId", "==", courseSel.value))
-  );
-
-  const studentsSnap = await getDocs(collection(db, "students"));
-
-  const studentsMap = {};
-  studentsSnap.forEach(d => {
-    const s = d.data();
-    studentsMap[d.id] = `${s.name} ${s.lastName}`;
-  });
-
-  studentSel.innerHTML = "<option value=''>Alumno</option>";
-
-  enrollSnap.forEach(e => {
-    const data = e.data();
-    studentSel.innerHTML += `
-      <option value="${e.id}">
-        ${studentsMap[data.studentId]}
-      </option>
-    `;
   });
 
   loadGrid();
-});
+}
 
 // =====================
 // GRID
 // =====================
-async function loadGrid() {
+window.loadGrid = async () => {
 
-  const enrollSnap = await getDocs(
-    query(collection(db, "enrollments"), where("courseId", "==", courseSel.value))
-  );
+  const head = document.getElementById("payments-head");
+  const body = document.getElementById("payments-body");
 
-  const paymentsSnap = await getDocs(collection(db, "payments"));
-  const studentsSnap = await getDocs(collection(db, "students"));
-
-  const studentsMap = {};
-  studentsSnap.forEach(d => {
-    const s = d.data();
-    studentsMap[d.id] = `${s.name} ${s.lastName}`;
-  });
-
-  const paymentsMap = {};
-  paymentsSnap.forEach(d => {
-    const p = d.data();
-    paymentsMap[`${p.enrollmentId}_${p.month}_${p.year}`] = {
-      id: d.id,
-      ...p
-    };
-  });
-
-  // HEADER
-  let headerHTML = "<tr><th>Alumno</th>";
-
-  MONTHS.forEach(m => {
-    headerHTML += `<th>${m}</th>`;
-  });
-
-  headerHTML += "</tr>";
-  head.innerHTML = headerHTML;
-
-  // BODY
+  head.innerHTML = "";
   body.innerHTML = "";
 
-  enrollSnap.forEach(docSnap => {
-    const e = docSnap.data();
+  // HEADER
+  head.innerHTML = "<tr><th>Alumno</th>";
+  for (let m = 1; m <= 12; m++) {
+    head.innerHTML += `<th>${m}</th>`;
+  }
+  head.innerHTML += "</tr>";
 
-    let row = `<tr><td>${studentsMap[e.studentId]}</td>`;
+  const enrollSnap = await getDocs(collection(db, "enrollments"));
+  const studentsSnap = await getDocs(collection(db, "students"));
+  const paymentsSnap = await getDocs(collection(db, "payments"));
+  const feesSnap = await getDocs(collection(db, "course_fees"));
+
+  // =====================
+  // MAPAS
+  // =====================
+
+  let studentsMap = {};
+  studentsSnap.forEach(d => studentsMap[d.id] = d.data());
+
+  paymentsMap = {};
+  paymentsSnap.forEach(d => {
+    const p = d.data();
+    paymentsMap[`${p.enrollmentId}_${p.month}`] = { id: d.id, ...p };
+  });
+
+  feesMap = {};
+  feesSnap.forEach(d => {
+    const f = d.data();
+    feesMap[`${f.courseId}_${f.month}_${f.year}`] = f;
+  });
+
+  // =====================
+  // FILAS
+  // =====================
+  enrollSnap.forEach(docSnap => {
+
+    const e = docSnap.data();
+    const student = studentsMap[e.studentId];
+
+    if (!student) return;
+
+    let row = `<tr><td>${student.name} ${student.lastname}</td>`;
 
     for (let m = 1; m <= 12; m++) {
 
-      const key = `${docSnap.id}_${m}_${YEAR}`;
-      const payment = paymentsMap[key];
+      const payment = paymentsMap[`${docSnap.id}_${m}`];
 
       row += `
-        <td onclick="handlePaymentClick('${docSnap.id}', ${m})"
-            style="cursor:pointer;">
-          ${payment ? "✔" : ""}
+        <td onclick="togglePayment('${docSnap.id}', ${m})">
+          ${renderCell(docSnap.id, e.courseId, m, payment)}
         </td>
       `;
     }
 
     row += "</tr>";
     body.innerHTML += row;
+
   });
+
+};
+
+// =====================
+// RENDER CELDA
+// =====================
+function renderCell(enrollmentId, courseId, month, payment) {
+
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const year = now.getFullYear();
+
+  const fee = feesMap[`${courseId}_${month}_${year}`];
+  if (!fee || !fee.dueDate) return "";
+
+  const dueDate = new Date(fee.dueDate);
+
+  // =====================
+  // ✔ PAGO
+  // =====================
+  if (payment) {
+
+    const paymentDate = new Date(payment.paymentDate);
+
+    // ✔ en término (VERDE)
+    if (paymentDate <= dueDate) {
+      return `
+        <span style="
+          background:#22c55e;
+          color:white;
+          padding:4px 7px;
+          border-radius:6px;
+          font-weight:bold;
+        ">✔</span>
+      `;
+    }
+
+    // ✔ fuera de término (ROJO)
+    return `
+      <span style="
+        background:#ef4444;
+        color:white;
+        padding:4px 7px;
+        border-radius:6px;
+        font-weight:bold;
+      ">✔</span>
+    `;
+  }
+
+  // =====================
+  // DEUDA
+  // =====================
+  if (month < currentMonth && now > dueDate) {
+    return `<span style="color:red;">●</span>`;
+  }
+
+  if (month === currentMonth && now > dueDate) {
+    return `<span style="color:orange;">●</span>`;
+  }
+
+  return "";
 }
 
 // =====================
-// CLICK EN CELDA
+// TOGGLE PAGO SIMPLE
 // =====================
-window.handlePaymentClick = async (enrollmentId, month) => {
+window.togglePayment = async (enrollmentId, month) => {
 
-  const q = query(
-    collection(db, "payments"),
-    where("enrollmentId", "==", enrollmentId),
-    where("month", "==", month),
-    where("year", "==", YEAR)
-  );
+  const key = `${enrollmentId}_${month}`;
+  const existing = paymentsMap[key];
 
-  const snap = await getDocs(q);
-
-  // 👉 YA EXISTE → eliminar
-  if (!snap.empty) {
-    if (confirm("¿Eliminar pago?")) {
-      await deleteDoc(doc(db, "payments", snap.docs[0].id));
-      loadGrid();
-    }
-    return;
+  if (existing) {
+    await deleteDoc(doc(db, "payments", existing.id));
+  } else {
+    await addDoc(collection(db, "payments"), {
+      enrollmentId,
+      month,
+      paymentDate: new Date().toISOString()
+    });
   }
 
-  // 👉 NO EXISTE → abrir modal
-  document.getElementById("modal-enrollment").value = enrollmentId;
-  document.getElementById("modal-month").value = month;
-
-  document.getElementById("modal-date").value =
-    new Date().toISOString().split("T")[0];
-
-  document.getElementById("modal-amount").value = "";
-
-  document.getElementById("payment-modal").classList.remove("hidden");
-};
-
-// =====================
-// MODAL
-// =====================
-window.closeModal = () => {
-  document.getElementById("payment-modal").classList.add("hidden");
-};
-
-window.savePayment = async () => {
-
-  const enrollmentId = document.getElementById("modal-enrollment").value;
-  const month = parseInt(document.getElementById("modal-month").value);
-
-  const paymentDate = document.getElementById("modal-date").value;
-  const method = document.getElementById("modal-method").value;
-  const amount = parseFloat(document.getElementById("modal-amount").value);
-  const receipt = document.getElementById("modal-receipt").value;
-
-  if (!amount || !paymentDate) {
-    return alert("Completar datos");
-  }
-
-  await addDoc(collection(db, "payments"), {
-    enrollmentId,
-    month,
-    year: YEAR,
-    paymentDate,
-    method,
-    amount,
-    receiptNumber: receipt,
-    status: "Pagado",
-    createdAt: new Date()
-  });
-
-  closeModal();
   loadGrid();
 };
