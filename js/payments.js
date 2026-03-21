@@ -2,31 +2,92 @@ import { db } from "./firebase.js";
 import {
   collection,
   getDocs,
-  addDoc,
-  deleteDoc,
-  doc
+  addDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+let organizers = [];
+let locations = [];
+let courses = [];
+let students = [];
 
 let feesMap = {};
 let paymentsMap = {};
 
-loadFilters();
+let currentPayment = {};
+
+init();
+
+// =====================
+// INIT
+// =====================
+async function init() {
+  await loadData();
+  fillOrganizers();
+  loadGrid();
+}
+
+// =====================
+// CARGA DATA
+// =====================
+async function loadData() {
+
+  const orgSnap = await getDocs(collection(db, "organizers"));
+  const locSnap = await getDocs(collection(db, "locations"));
+  const courseSnap = await getDocs(collection(db, "courses"));
+  const studentSnap = await getDocs(collection(db, "students"));
+
+  organizers = orgSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  locations = locSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  courses = courseSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  students = studentSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
 
 // =====================
 // FILTROS
 // =====================
-async function loadFilters() {
+function fillOrganizers() {
+  const sel = document.getElementById("filter-organizer");
 
-  const orgSnap = await getDocs(collection(db, "organizers"));
-  const orgSel = document.getElementById("filter-organizer");
-
-  orgSel.innerHTML = "<option value=''>Organizador</option>";
-  orgSnap.forEach(d => {
-    orgSel.innerHTML += `<option value="${d.id}">${d.data().name}</option>`;
+  sel.innerHTML = "<option value=''>Organizador</option>";
+  organizers.forEach(o => {
+    sel.innerHTML += `<option value="${o.id}">${o.name}</option>`;
   });
-
-  loadGrid();
 }
+
+window.onOrganizerChange = () => {
+  const orgId = document.getElementById("filter-organizer").value;
+
+  const sel = document.getElementById("filter-location");
+  sel.innerHTML = "<option value=''>Sede</option>";
+
+  locations
+    .filter(l => l.organizerId === orgId)
+    .forEach(l => {
+      sel.innerHTML += `<option value="${l.id}">${l.name}</option>`;
+    });
+};
+
+window.onLocationChange = () => {
+  const locId = document.getElementById("filter-location").value;
+
+  const sel = document.getElementById("filter-course");
+  sel.innerHTML = "<option value=''>Curso</option>";
+
+  courses
+    .filter(c => c.locationId === locId)
+    .forEach(c => {
+      sel.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+    });
+};
+
+window.onCourseChange = () => {
+  const sel = document.getElementById("filter-student");
+  sel.innerHTML = "<option value=''>Alumno</option>";
+
+  students.forEach(s => {
+    sel.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+  });
+};
 
 // =====================
 // GRID
@@ -36,32 +97,21 @@ window.loadGrid = async () => {
   const head = document.getElementById("payments-head");
   const body = document.getElementById("payments-body");
 
-  body.innerHTML = "";
-
-  // =====================
-  // HEADER (FIX 🔥)
-  // =====================
+  // HEADER
   let headerHtml = "<tr><th>Alumno</th>";
-
   for (let m = 1; m <= 12; m++) {
     headerHtml += `<th>${m}</th>`;
   }
-
   headerHtml += "</tr>";
-
   head.innerHTML = headerHtml;
 
-  // =====================
-  // DATA
-  // =====================
+  body.innerHTML = "";
+
   const enrollSnap = await getDocs(collection(db, "enrollments"));
   const studentsSnap = await getDocs(collection(db, "students"));
   const paymentsSnap = await getDocs(collection(db, "payments"));
   const feesSnap = await getDocs(collection(db, "course_fees"));
 
-  // =====================
-  // MAPAS
-  // =====================
   let studentsMap = {};
   studentsSnap.forEach(d => studentsMap[d.id] = d.data());
 
@@ -77,16 +127,12 @@ window.loadGrid = async () => {
     feesMap[`${f.courseId}_${f.month}_${f.year}`] = f;
   });
 
-  // =====================
-  // FILAS
-  // =====================
   let bodyHtml = "";
 
   enrollSnap.forEach(docSnap => {
 
     const e = docSnap.data();
     const student = studentsMap[e.studentId];
-
     if (!student) return;
 
     let row = `<tr><td>${student.name} ${student.lastname}</td>`;
@@ -96,14 +142,13 @@ window.loadGrid = async () => {
       const payment = paymentsMap[`${docSnap.id}_${m}`];
 
       row += `
-        <td onclick="togglePayment('${docSnap.id}', ${m})">
+        <td onclick="openPaymentModal('${docSnap.id}', ${m})">
           ${renderCell(docSnap.id, e.courseId, m, payment)}
         </td>
       `;
     }
 
     row += "</tr>";
-
     bodyHtml += row;
   });
 
@@ -111,7 +156,7 @@ window.loadGrid = async () => {
 };
 
 // =====================
-// RENDER CELDA
+// CELDA
 // =====================
 function renderCell(enrollmentId, courseId, month, payment) {
 
@@ -124,41 +169,17 @@ function renderCell(enrollmentId, courseId, month, payment) {
 
   const dueDate = new Date(fee.dueDate);
 
-  // =====================
-  // ✔ PAGO
-  // =====================
   if (payment) {
 
     const paymentDate = new Date(payment.paymentDate);
 
-    // ✔ en término (VERDE)
     if (paymentDate <= dueDate) {
-      return `
-        <span style="
-          background:#22c55e;
-          color:white;
-          padding:4px 7px;
-          border-radius:6px;
-          font-weight:bold;
-        ">✔</span>
-      `;
+      return `<span style="background:#22c55e;color:white;padding:4px 7px;border-radius:6px;">✔</span>`;
     }
 
-    // ✔ fuera de término (ROJO)
-    return `
-      <span style="
-        background:#ef4444;
-        color:white;
-        padding:4px 7px;
-        border-radius:6px;
-        font-weight:bold;
-      ">✔</span>
-    `;
+    return `<span style="background:#ef4444;color:white;padding:4px 7px;border-radius:6px;">✔</span>`;
   }
 
-  // =====================
-  // DEUDA
-  // =====================
   if (month < currentMonth && now > dueDate) {
     return `<span style="color:red;">●</span>`;
   }
@@ -171,22 +192,27 @@ function renderCell(enrollmentId, courseId, month, payment) {
 }
 
 // =====================
-// TOGGLE PAGO SIMPLE
+// MODAL
 // =====================
-window.togglePayment = async (enrollmentId, month) => {
+window.openPaymentModal = (enrollmentId, month) => {
+  currentPayment = { enrollmentId, month };
+  document.getElementById("payment-modal").style.display = "flex";
+};
 
-  const key = `${enrollmentId}_${month}`;
-  const existing = paymentsMap[key];
+window.closeModal = () => {
+  document.getElementById("payment-modal").style.display = "none";
+};
 
-  if (existing) {
-    await deleteDoc(doc(db, "payments", existing.id));
-  } else {
-    await addDoc(collection(db, "payments"), {
-      enrollmentId,
-      month,
-      paymentDate: new Date().toISOString()
-    });
-  }
+window.savePayment = async () => {
 
+  await addDoc(collection(db, "payments"), {
+    ...currentPayment,
+    paymentDate: document.getElementById("pay-date").value,
+    method: document.getElementById("pay-method").value,
+    amount: parseFloat(document.getElementById("pay-amount").value),
+    reference: document.getElementById("pay-ref").value
+  });
+
+  closeModal();
   loadGrid();
 };
