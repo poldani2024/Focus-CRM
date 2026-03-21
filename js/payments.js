@@ -2,7 +2,7 @@ import { db } from "./firebase.js";
 import {
   collection,
   getDocs,
-  addDoc
+  addDoc,doc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 let organizers = [];
@@ -228,13 +228,23 @@ window.closeModal = () => {
 
 window.savePayment = async () => {
 
-  await addDoc(collection(db, "payments"), {
-    ...currentPayment,
+  const data = {
+    enrollmentId: currentPayment.enrollmentId,
+    month: currentPayment.month,
     paymentDate: document.getElementById("pay-date").value,
     method: document.getElementById("pay-method").value,
     amount: parseFloat(document.getElementById("pay-amount").value),
     reference: document.getElementById("pay-ref").value
-  });
+  };
+
+  // 🧠 UPDATE
+  if (currentPayment.id) {
+    await updateDoc(doc(db, "payments", currentPayment.id), data);
+  }
+  // 🆕 CREATE
+  else {
+    await addDoc(collection(db, "payments"), data);
+  }
 
   closeModal();
   loadGrid();
