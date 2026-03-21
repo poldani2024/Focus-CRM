@@ -8,7 +8,26 @@
 .filters {
   margin-bottom: 20px;
 }
+/* SUBMENU */
+.submenu {
+  display: none;
+  padding-left: 10px;
+}
 
+.submenu .menu-item {
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+/* INDENTACIÓN */
+.menu-item.sub {
+  padding-left: 25px;
+}
+
+/* HOVER */
+.has-submenu {
+  cursor: pointer;
+}
 /* CONTENEDOR TABLA */
 .table-container {
   overflow: hidden;
