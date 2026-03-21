@@ -40,12 +40,7 @@ window.loadGrid = async () => {
   body.innerHTML = "";
 
   // HEADER
-  head.innerHTML = "<tr><th>Alumno</th>";
-  for (let m = 1; m <= 12; m++) {
-    head.innerHTML += `<th>${m}</th>`;
-  }
-  head.innerHTML += "</tr>";
-
+ head.innerHTML = "<tr><th>Alumno</th>";
   const enrollSnap = await getDocs(collection(db, "enrollments"));
   const studentsSnap = await getDocs(collection(db, "students"));
   const paymentsSnap = await getDocs(collection(db, "payments"));
