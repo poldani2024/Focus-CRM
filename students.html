@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Alumnos</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alumnos</title>
 
-<link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
@@ -14,100 +14,75 @@
 
 <div class="main">
 
+  <!-- HEADER -->
   <div class="header">
     <div>
       <h2>Gestión de Alumnos</h2>
-      <p class="subtitle">Base de comunidad y seguimiento</p>
+      <p class="subtitle">Base de comunidad</p>
     </div>
-
-    <button class="btn-primary">+ Nuevo Alumno</button>
   </div>
 
   <div class="grid-courses">
 
+    <!-- FORM -->
     <div class="box">
+
       <h3>Alta / Edición</h3>
+
+      <input type="hidden" id="student-id">
 
       <div class="row">
         <div class="form-group">
           <label>Nombre</label>
-          <input type="text">
+          <input type="text" id="student-name">
         </div>
 
         <div class="form-group">
           <label>Apellido</label>
-          <input type="text">
+          <input type="text" id="student-lastname">
         </div>
+      </div>
+
+      <div class="form-group">
+        <label>Teléfono</label>
+        <input type="text" id="student-phone">
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="student-email">
       </div>
 
       <div class="form-group">
         <label>Domicilio</label>
-        <input type="text">
-      </div>
-
-      <div class="row">
-        <div class="form-group">
-          <label>Teléfono</label>
-          <input type="text">
-        </div>
-
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email">
-        </div>
+        <input type="text" id="student-address">
       </div>
 
       <div class="form-group">
         <label>Fecha de Nacimiento</label>
-        <input type="date">
-      </div>
-
-      <div class="row">
-        <div class="form-group">
-          <label>Estado</label>
-          <select>
-            <option>Activo</option>
-            <option>Inactivo</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Fecha de Inicio</label>
-          <input type="date">
-        </div>
+        <input type="date" id="student-birth">
       </div>
 
       <div class="form-group">
-        <label>Curso actual</label>
-        <select></select>
-      </div>
-
-      <div class="form-group">
-        <label>Intereses</label>
-        <input type="text">
-      </div>
-
-      <div class="form-group">
-        <label>Fuente</label>
-        <input type="text">
+        <label>Estado</label>
+        <select id="student-status">
+          <option>Activo</option>
+          <option>Inactivo</option>
+        </select>
       </div>
 
       <div class="form-group">
         <label>Observaciones</label>
-        <textarea></textarea>
+        <textarea id="student-notes"></textarea>
       </div>
 
-      <button class="btn-primary full">Guardar</button>
+      <button class="btn-primary full" id="save-student">Guardar</button>
+
     </div>
 
+    <!-- LISTA -->
     <div class="box">
       <h3>Alumnos</h3>
-
-      <div class="course-item clickable">
-        <strong>Ana Gómez</strong>
-        <p>Italiano Inicial · Activo</p>
-      </div>
-
     </div>
 
   </div>
@@ -115,6 +90,7 @@
 </div>
 
 <script src="layout.js"></script>
+<script type="module" src="./js/students.js"></script>
 
 </body>
 </html>
