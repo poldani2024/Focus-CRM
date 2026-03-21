@@ -7,63 +7,124 @@ import {
   where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const courseFilter = document.getElementById("filter-course");
+const YEAR = new Date().getFullYear();
+
+const orgSel = document.getElementById("filter-organizer");
+const locSel = document.getElementById("filter-location");
+const courseSel = document.getElementById("filter-course");
+const studentSel = document.getElementById("filter-student");
+
 const head = document.getElementById("payments-head");
 const body = document.getElementById("payments-body");
 
-const YEAR = new Date().getFullYear();
+// =======================
+// LOAD ORGANIZERS
+// =======================
+async function loadOrganizers() {
+  const snap = await getDocs(collection(db, "organizers"));
+  orgSel.innerHTML = "<option value=''>Organizador</option>";
 
-// LOAD COURSES
-async function loadCourses() {
-  const snap = await getDocs(collection(db, "courses"));
-
-  courseFilter.innerHTML = "<option value=''>Seleccionar</option>";
-
-  snap.forEach(doc => {
-    courseFilter.innerHTML += `
-      <option value="${doc.id}">${doc.data().name}</option>
-    `;
+  snap.forEach(d => {
+    orgSel.innerHTML += `<option value="${d.id}">${d.data().name}</option>`;
   });
 }
 
-courseFilter.addEventListener("change", loadGrid);
+// =======================
+// LOAD LOCATIONS
+// =======================
+orgSel.addEventListener("change", async () => {
+  const snap = await getDocs(collection(db, "courses"));
 
-// LOAD GRID
-async function loadGrid() {
+  locSel.innerHTML = "<option value=''>Sede</option>";
 
-  const courseId = courseFilter.value;
-  if (!courseId) return;
+  snap.forEach(d => {
+    const c = d.data();
+    if (c.organizerId === orgSel.value) {
+      locSel.innerHTML += `<option value="${c.locationId}">${c.locationId}</option>`;
+    }
+  });
+});
 
-  // ENROLLMENTS
+// =======================
+// LOAD COURSES
+// =======================
+locSel.addEventListener("change", async () => {
+  const snap = await getDocs(collection(db, "courses"));
+
+  courseSel.innerHTML = "<option value=''>Curso</option>";
+
+  snap.forEach(d => {
+    const c = d.data();
+
+    if (
+      c.organizerId === orgSel.value &&
+      c.locationId === locSel.value
+    ) {
+      courseSel.innerHTML += `<option value="${d.id}">${c.name}</option>`;
+    }
+  });
+});
+
+// =======================
+// LOAD STUDENTS
+// =======================
+courseSel.addEventListener("change", async () => {
+
   const enrollSnap = await getDocs(
-    query(collection(db, "enrollments"), where("courseId", "==", courseId))
+    query(collection(db, "enrollments"), where("courseId", "==", courseSel.value))
   );
 
-  // STUDENTS
   const studentsSnap = await getDocs(collection(db, "students"));
+
   const studentsMap = {};
   studentsSnap.forEach(d => {
     const s = d.data();
     studentsMap[d.id] = `${s.name} ${s.lastName}`;
   });
 
-  // PAYMENTS
-  const paymentsSnap = await getDocs(collection(db, "payments"));
-  const paymentsMap = {};
+  studentSel.innerHTML = "<option value=''>Alumno</option>";
 
+  enrollSnap.forEach(e => {
+    const data = e.data();
+    studentSel.innerHTML += `
+      <option value="${e.id}">
+        ${studentsMap[data.studentId]}
+      </option>
+    `;
+  });
+
+  loadGrid();
+});
+
+// =======================
+// GRID
+// =======================
+async function loadGrid() {
+
+  const enrollSnap = await getDocs(
+    query(collection(db, "enrollments"), where("courseId", "==", courseSel.value))
+  );
+
+  const paymentsSnap = await getDocs(collection(db, "payments"));
+  const studentsSnap = await getDocs(collection(db, "students"));
+
+  const studentsMap = {};
+  studentsSnap.forEach(d => {
+    const s = d.data();
+    studentsMap[d.id] = `${s.name} ${s.lastName}`;
+  });
+
+  const paymentsMap = {};
   paymentsSnap.forEach(d => {
     const p = d.data();
-    const key = `${p.enrollmentId}_${p.month}_${p.year}`;
-    paymentsMap[key] = p;
+    paymentsMap[`${p.enrollmentId}_${p.month}_${p.year}`] = true;
   });
 
   // HEADER
   head.innerHTML = "<tr><th>Alumno</th>";
-
   for (let m = 1; m <= 12; m++) {
     head.innerHTML += `<th>${m}</th>`;
   }
-
   head.innerHTML += "</tr>";
 
   // BODY
@@ -77,12 +138,12 @@ async function loadGrid() {
     for (let m = 1; m <= 12; m++) {
 
       const key = `${docSnap.id}_${m}_${YEAR}`;
-      const paid = paymentsMap[key];
+      const checked = paymentsMap[key];
 
       row += `
         <td>
           <input type="checkbox"
-            ${paid ? "checked" : ""}
+            ${checked ? "checked" : ""}
             onchange="togglePayment('${docSnap.id}', ${m})"
           >
         </td>
@@ -94,32 +155,21 @@ async function loadGrid() {
   });
 }
 
-// TOGGLE PAGO
+// =======================
+// TOGGLE
+// =======================
 window.togglePayment = async (enrollmentId, month) => {
 
-  const keyQuery = query(
-    collection(db, "payments"),
-    where("enrollmentId", "==", enrollmentId),
-    where("month", "==", month),
-    where("year", "==", YEAR)
-  );
+  await addDoc(collection(db, "payments"), {
+    enrollmentId,
+    month,
+    year: YEAR,
+    status: "Pagado",
+    createdAt: new Date()
+  });
 
-  const snap = await getDocs(keyQuery);
-
-  if (snap.empty) {
-    // CREAR
-    await addDoc(collection(db, "payments"), {
-      enrollmentId,
-      month,
-      year: YEAR,
-      status: "Pagado",
-      createdAt: new Date()
-    });
-  } else {
-    // (simple MVP: no borrar, podrías eliminar después)
-    alert("Ya registrado");
-  }
+  loadGrid();
 };
 
 // INIT
-loadCourses();
+loadOrganizers();
