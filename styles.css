@@ -13,6 +13,23 @@
   display: none;
   padding-left: 10px;
 }
+.fees-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.fees-table th,
+.fees-table td {
+  border: 1px solid #eee;
+  padding: 6px;
+  text-align: center;
+}
+
+.fees-table input {
+  width: 100%;
+  border: none;
+  text-align: center;
+}
 .modal {
   position: fixed;
   top: 0;
