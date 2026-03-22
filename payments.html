@@ -60,6 +60,25 @@
   display: flex;
   justify-content: flex-end;
 }
+
+.modal-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.modal-actions .btn-danger {
+  grid-column: 1 / -1;
+}
 </style>
 </head>
 
@@ -115,8 +134,11 @@
     <input type="number" id="pay-amount" placeholder="Monto">
     <input type="text" id="pay-ref" placeholder="Comprobante">
 
-    <button class="btn-primary" onclick="savePayment()">Guardar</button>
-    <button onclick="closeModal()">Cancelar</button>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="savePayment()">Guardar</button>
+      <button onclick="closeModal()">Cancelar</button>
+      <button id="delete-payment-btn" class="btn-danger" onclick="deletePayment()" style="display:none;">Eliminar</button>
+    </div>
 
   </div>
 </div>

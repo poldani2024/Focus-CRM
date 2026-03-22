@@ -4,7 +4,8 @@ import {
   getDocs,
   addDoc,
   doc,
-  updateDoc
+  updateDoc,
+  deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 let organizers = [];
@@ -311,6 +312,7 @@ window.openPaymentModal = (enrollmentId, month, year) => {
 
   const key = `${enrollmentId}_${month}_${year}`;
   const existing = paymentsMap[key];
+  const deleteButton = document.getElementById("delete-payment-btn");
 
   if (existing) {
     document.getElementById("pay-date").value = existing.paymentDate?.substring(0, 10) || "";
@@ -318,12 +320,14 @@ window.openPaymentModal = (enrollmentId, month, year) => {
     document.getElementById("pay-amount").value = existing.amount || "";
     document.getElementById("pay-ref").value = existing.reference || "";
     currentPayment.id = existing.id;
+    deleteButton.style.display = "block";
   } else {
     document.getElementById("pay-date").value = "";
     document.getElementById("pay-method").value = "Efectivo";
     document.getElementById("pay-amount").value = "";
     document.getElementById("pay-ref").value = "";
     currentPayment.id = null;
+    deleteButton.style.display = "none";
   }
 
   document.getElementById("payment-modal").style.display = "flex";
@@ -331,6 +335,7 @@ window.openPaymentModal = (enrollmentId, month, year) => {
 
 window.closeModal = () => {
   document.getElementById("payment-modal").style.display = "none";
+  document.getElementById("delete-payment-btn").style.display = "none";
 };
 
 window.savePayment = async () => {
@@ -355,6 +360,18 @@ window.savePayment = async () => {
   } else {
     await addDoc(collection(db, "payments"), data);
   }
+
+  closeModal();
+  await loadGrid();
+};
+
+
+window.deletePayment = async () => {
+  if (!currentPayment.id) return;
+
+  if (!confirm("¿Eliminar pago cargado?")) return;
+
+  await deleteDoc(doc(db, "payments", currentPayment.id));
 
   closeModal();
   await loadGrid();
