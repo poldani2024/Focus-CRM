@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asistencia</title>
+
+<link rel="stylesheet" href="styles.css">
+
+<style>
+.attendance-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.attendance-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.attendance-table th,
+.attendance-table td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+.attendance-table th {
+  background: #f5f6fa;
+}
+
+.attendance-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.attendance-summary .summary-item {
+  background: #f8fafc;
+}
+
+.attendance-empty {
+  padding: 20px 0;
+  color: #6b7280;
+}
+</style>
+</head>
+
+<body>
+
+<div id="sidebar-container"></div>
+
+<div class="main">
+  <div class="header">
+    <div>
+      <h2>Control de Asistencia</h2>
+      <p class="subtitle">Tomar asistencia por curso y fecha</p>
+    </div>
+  </div>
+
+  <div class="box">
+    <div class="attendance-filters">
+      <select id="attendance-organizer" onchange="onAttendanceOrganizerChange()"></select>
+      <select id="attendance-location" onchange="onAttendanceLocationChange()"></select>
+      <select id="attendance-course"></select>
+      <input type="text" id="attendance-date" placeholder="DD/MM/YYYY">
+    </div>
+
+    <div class="attendance-actions">
+      <button class="btn-primary" onclick="loadAttendanceGrid()">Cargar asistencia</button>
+      <button onclick="markAllAttendance('Presente')">Marcar todos presentes</button>
+      <button onclick="markAllAttendance('Ausente')">Marcar todos ausentes</button>
+      <button onclick="saveAttendance()">Guardar asistencia</button>
+    </div>
+  </div>
+
+  <div class="box">
+    <h3>Listado del curso</h3>
+    <p class="subtitle" id="attendance-subtitle">Seleccioná un curso y una fecha para comenzar.</p>
+
+    <div class="attendance-summary" id="attendance-summary">
+      <div class="summary-item"><span>Presentes</span><strong id="attendance-present-count">0</strong></div>
+      <div class="summary-item"><span>Ausentes</span><strong id="attendance-absent-count">0</strong></div>
+      <div class="summary-item"><span>Justificados</span><strong id="attendance-justified-count">0</strong></div>
+      <div class="summary-item"><span>Pendientes</span><strong id="attendance-pending-count">0</strong></div>
+    </div>
+
+    <div class="table-container mt">
+      <table class="attendance-table">
+        <thead>
+          <tr>
+            <th>Alumno</th>
+            <th>Estado</th>
+            <th>Observación</th>
+          </tr>
+        </thead>
+        <tbody id="attendance-body">
+          <tr>
+            <td colspan="3" class="attendance-empty">Todavía no se cargó ninguna clase.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="layout.js"></script>
+<script type="module" src="./js/attendance.js"></script>
+
+</body>
+</html>

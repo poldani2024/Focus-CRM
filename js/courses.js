@@ -10,12 +10,30 @@ import {
   where,
   orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  attachDateInputFormatting,
+  parseFlexibleDate,
+  toDisplayDate,
+  toStorageDate
+} from "./date-utils.js";
 
 let currentCourseId = null;
+
+function getPeriodKey(month, year) {
+  return `${Number(month)}_${Number(year)}`;
+}
+
+function syncCourseIdField() {
+  const courseIdInput = document.getElementById("course-id");
+  if (courseIdInput) courseIdInput.value = currentCourseId || "";
+}
 
 // =====================
 // INIT
 // =====================
+attachDateInputFormatting(document.getElementById("course-start"));
+attachDateInputFormatting(document.getElementById("course-end"));
+
 loadOrganizers();
 loadLocations();
 loadCourses();
@@ -54,23 +72,26 @@ window.saveCourse = async () => {
     organizerId: document.getElementById("course-organizer").value,
     locationId: document.getElementById("course-location").value,
     name: document.getElementById("course-name").value,
-    startDate: document.getElementById("course-start").value,
-    endDate: document.getElementById("course-end").value,
+    startDate: toStorageDate(document.getElementById("course-start").value),
+    endDate: toStorageDate(document.getElementById("course-end").value),
     price: parseFloat(document.getElementById("course-price").value),
     status: document.getElementById("course-status").value,
     createdAt: new Date()
   };
 
   if (!data.name) return alert("Nombre requerido");
+  if (!data.startDate || !data.endDate) return alert("Ingresar fechas en formato DD/MM/YYYY");
 
   if (!currentCourseId) {
-    await addDoc(collection(db, "courses"), data);
+    const courseRef = await addDoc(collection(db, "courses"), data);
+    currentCourseId = courseRef.id;
   } else {
     await updateDoc(doc(db, "courses", currentCourseId), data);
   }
 
-  clearForm();
-  loadCourses();
+  syncCourseIdField();
+  await loadCourses();
+  await loadFees();
 };
 
 // =====================
@@ -110,12 +131,13 @@ window.editCourse = async (id) => {
       const c = d.data();
 
       currentCourseId = id;
+      syncCourseIdField();
 
       document.getElementById("course-organizer").value = c.organizerId || "";
       document.getElementById("course-location").value = c.locationId || "";
       document.getElementById("course-name").value = c.name || "";
-      document.getElementById("course-start").value = c.startDate || "";
-      document.getElementById("course-end").value = c.endDate || "";
+      document.getElementById("course-start").value = toDisplayDate(c.startDate);
+      document.getElementById("course-end").value = toDisplayDate(c.endDate);
       document.getElementById("course-price").value = parseFloat(c.price) || 0;
       document.getElementById("course-status").value = c.status || "Plan";
 
@@ -129,6 +151,7 @@ window.editCourse = async (id) => {
 // =====================
 function clearForm() {
   currentCourseId = null;
+  syncCourseIdField();
   document.querySelectorAll("input").forEach(i => i.value = "");
 }
 
@@ -159,7 +182,7 @@ async function loadFees() {
         <td>${f.month}</td>
         <td>${f.year}</td>
         <td><input value="${f.amount}" onchange="updateFee('${d.id}','amount',this.value)"></td>
-        <td><input type="date" value="${f.dueDate}" onchange="updateFee('${d.id}','dueDate',this.value)"></td>
+        <td><input type="text" value="${toDisplayDate(f.dueDate)}" placeholder="DD/MM/YYYY" onchange="updateFee('${d.id}','dueDate',this.value)"></td>
         <td><input value="${f.interestPercent}" onchange="updateFee('${d.id}','interestPercent',this.value)"></td>
         <td><button onclick="deleteFee('${d.id}')">🗑</button></td>
       </tr>
@@ -174,28 +197,62 @@ window.generateFees = async () => {
 
   if (!currentCourseId) return alert("Guardar curso primero");
 
-  const start = new Date(document.getElementById("course-start").value);
-  const end = new Date(document.getElementById("course-end").value);
+  const start = parseFlexibleDate(document.getElementById("course-start").value);
+  const end = parseFlexibleDate(document.getElementById("course-end").value);
   const price = parseFloat(document.getElementById("course-price").value);
 
+  if (!start || !end) {
+    return alert("Completar fecha de inicio y fin en formato DD/MM/YYYY");
+  }
+
+  if (end < start) {
+    return alert("La fecha de fin no puede ser menor a la fecha de inicio");
+  }
+
+  if (Number.isNaN(price)) {
+    return alert("Completar precio base");
+  }
+
+  const existingFeesSnap = await getDocs(
+    query(collection(db, "course_fees"), where("courseId", "==", currentCourseId))
+  );
+
+  const existingPeriods = new Set();
+  existingFeesSnap.forEach(docSnap => {
+    const fee = docSnap.data();
+    existingPeriods.add(getPeriodKey(fee.month, fee.year));
+  });
+
   let current = new Date(start);
+  let createdCount = 0;
 
   while (current <= end) {
+    const month = current.getMonth() + 1;
+    const year = current.getFullYear();
+    const periodKey = getPeriodKey(month, year);
 
-    await addDoc(collection(db, "course_fees"), {
-      courseId: currentCourseId,
-      month: current.getMonth() + 1,
-      year: current.getFullYear(),
-      amount: price,
-      dueDate: new Date(current.getFullYear(), current.getMonth(), 10)
-        .toISOString().split("T")[0],
-      interestPercent: 10
-    });
+    if (!existingPeriods.has(periodKey)) {
+      await addDoc(collection(db, "course_fees"), {
+        courseId: currentCourseId,
+        month,
+        year,
+        amount: price,
+        dueDate: toStorageDate(new Date(year, current.getMonth(), 10)),
+        interestPercent: 10
+      });
+
+      existingPeriods.add(periodKey);
+      createdCount += 1;
+    }
 
     current.setMonth(current.getMonth() + 1);
   }
 
-  loadFees();
+  await loadFees();
+
+  if (createdCount === 0) {
+    alert("No se generaron cuotas nuevas porque los períodos ya existían");
+  }
 };
 
 // =====================
@@ -203,11 +260,23 @@ window.generateFees = async () => {
 // =====================
 window.updateFee = async (id, field, value) => {
 
+  const normalizedValue = field === "dueDate"
+    ? toStorageDate(value)
+    : value;
+
+  if (field === "dueDate" && !normalizedValue) {
+    return alert("Ingresar fecha válida en formato DD/MM/YYYY");
+  }
+
   await updateDoc(doc(db, "course_fees", id), {
     [field]: field === "amount" || field === "interestPercent"
       ? parseFloat(value)
-      : value
+      : normalizedValue
   });
+
+  if (field === "dueDate") {
+    await loadFees();
+  }
 };
 
 // =====================

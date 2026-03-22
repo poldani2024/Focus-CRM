@@ -7,6 +7,11 @@ import {
   updateDoc,
   deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  attachDateInputFormatting,
+  toDisplayDate,
+  toStorageDate
+} from "./date-utils.js";
 
 // ELEMENTOS
 const idInput = document.getElementById("student-id");
@@ -22,8 +27,12 @@ const notesInput = document.getElementById("student-notes");
 const saveBtn = document.getElementById("save-student");
 const listBox = document.querySelector(".box:last-child");
 
+attachDateInputFormatting(birthInput);
+
 // GUARDAR / EDITAR
 saveBtn.addEventListener("click", async () => {
+  const birth = birthInput.value ? toStorageDate(birthInput.value) : "";
+  if (birthInput.value && !birth) return alert("Ingresar fecha en formato DD/MM/YYYY");
 
   const data = {
     name: nameInput.value,
@@ -31,7 +40,7 @@ saveBtn.addEventListener("click", async () => {
     phone: phoneInput.value,
     email: emailInput.value,
     address: addressInput.value,
-    birth: birthInput.value,
+    birth,
     status: statusInput.value,
     notes: notesInput.value,
     createdAt: new Date()
@@ -87,7 +96,7 @@ window.editStudent = async (id) => {
       phoneInput.value = s.phone;
       emailInput.value = s.email;
       addressInput.value = s.address;
-      birthInput.value = s.birth;
+      birthInput.value = toDisplayDate(s.birth);
       statusInput.value = s.status;
       notesInput.value = s.notes;
     }
