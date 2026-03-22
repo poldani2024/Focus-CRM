@@ -7,6 +7,12 @@ import {
   updateDoc,
   deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  attachDateInputFormatting,
+  parseFlexibleDate,
+  toDisplayDate,
+  toStorageDate
+} from "./date-utils.js";
 
 let organizers = [];
 let locations = [];
@@ -35,8 +41,10 @@ async function init() {
 // =====================
 // HELPERS
 // =====================
+attachDateInputFormatting(document.getElementById("pay-date"));
+
 function parseDate(value) {
-  return value ? new Date(`${value}T00:00:00`) : null;
+  return parseFlexibleDate(value);
 }
 
 function getSelectedFilters() {
@@ -315,7 +323,7 @@ window.openPaymentModal = (enrollmentId, month, year) => {
   const deleteButton = document.getElementById("delete-payment-btn");
 
   if (existing) {
-    document.getElementById("pay-date").value = existing.paymentDate?.substring(0, 10) || "";
+    document.getElementById("pay-date").value = toDisplayDate(existing.paymentDate);
     document.getElementById("pay-method").value = existing.method || "Efectivo";
     document.getElementById("pay-amount").value = existing.amount || "";
     document.getElementById("pay-ref").value = existing.reference || "";
@@ -339,10 +347,10 @@ window.closeModal = () => {
 };
 
 window.savePayment = async () => {
-  const paymentDate = document.getElementById("pay-date").value;
+  const paymentDate = toStorageDate(document.getElementById("pay-date").value);
   const amountValue = document.getElementById("pay-amount").value;
 
-  if (!paymentDate) return alert("Ingresar fecha de pago");
+  if (!paymentDate) return alert("Ingresar fecha de pago en formato DD/MM/YYYY");
   if (!amountValue) return alert("Ingresar monto");
 
   const data = {

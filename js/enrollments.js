@@ -6,6 +6,10 @@ import {
   deleteDoc,
   doc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  attachDateInputFormatting,
+  toStorageDate
+} from "./date-utils.js";
 
 const studentSelect = document.getElementById("enroll-student");
 const courseSelect = document.getElementById("enroll-course");
@@ -15,9 +19,10 @@ const saveBtn = document.getElementById("save-enroll");
 
 const listBox = document.querySelector(".box:last-child");
 
+attachDateInputFormatting(dateInput);
+
 // 🔥 CARGAR SELECTS
 async function loadSelectors() {
-
   const students = await getDocs(collection(db, "students"));
   studentSelect.innerHTML = "<option value=''>Seleccionar</option>";
 
@@ -45,11 +50,13 @@ async function loadSelectors() {
 
 // GUARDAR
 saveBtn.addEventListener("click", async () => {
+  const startDate = dateInput.value ? toStorageDate(dateInput.value) : "";
+  if (dateInput.value && !startDate) return alert("Ingresar fecha en formato DD/MM/YYYY");
 
   const data = {
     studentId: studentSelect.value,
     courseId: courseSelect.value,
-    startDate: dateInput.value,
+    startDate,
     status: statusInput.value,
     createdAt: new Date()
   };
@@ -60,12 +67,12 @@ saveBtn.addEventListener("click", async () => {
 
   await addDoc(collection(db, "enrollments"), data);
 
+  dateInput.value = "";
   loadEnrollments();
 });
 
 // LISTAR
 async function loadEnrollments() {
-
   const enrollSnap = await getDocs(collection(db, "enrollments"));
   const studentsSnap = await getDocs(collection(db, "students"));
   const coursesSnap = await getDocs(collection(db, "courses"));

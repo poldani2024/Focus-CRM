@@ -3,6 +3,7 @@ import {
   collection,
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { parseFlexibleDate } from "./date-utils.js";
 
 const now = new Date();
 const currentMonth = now.getMonth() + 1;
@@ -22,7 +23,7 @@ async function init() {
 }
 
 function parseDate(value) {
-  return value ? new Date(`${value}T00:00:00`) : null;
+  return parseFlexibleDate(value);
 }
 
 function formatCurrency(value) {

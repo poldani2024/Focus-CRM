@@ -10,6 +10,12 @@ import {
   where,
   orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  attachDateInputFormatting,
+  parseFlexibleDate,
+  toDisplayDate,
+  toStorageDate
+} from "./date-utils.js";
 
 let currentCourseId = null;
 
@@ -25,6 +31,9 @@ function syncCourseIdField() {
 // =====================
 // INIT
 // =====================
+attachDateInputFormatting(document.getElementById("course-start"));
+attachDateInputFormatting(document.getElementById("course-end"));
+
 loadOrganizers();
 loadLocations();
 loadCourses();
@@ -63,14 +72,15 @@ window.saveCourse = async () => {
     organizerId: document.getElementById("course-organizer").value,
     locationId: document.getElementById("course-location").value,
     name: document.getElementById("course-name").value,
-    startDate: document.getElementById("course-start").value,
-    endDate: document.getElementById("course-end").value,
+    startDate: toStorageDate(document.getElementById("course-start").value),
+    endDate: toStorageDate(document.getElementById("course-end").value),
     price: parseFloat(document.getElementById("course-price").value),
     status: document.getElementById("course-status").value,
     createdAt: new Date()
   };
 
   if (!data.name) return alert("Nombre requerido");
+  if (!data.startDate || !data.endDate) return alert("Ingresar fechas en formato DD/MM/YYYY");
 
   if (!currentCourseId) {
     const courseRef = await addDoc(collection(db, "courses"), data);
@@ -126,8 +136,8 @@ window.editCourse = async (id) => {
       document.getElementById("course-organizer").value = c.organizerId || "";
       document.getElementById("course-location").value = c.locationId || "";
       document.getElementById("course-name").value = c.name || "";
-      document.getElementById("course-start").value = c.startDate || "";
-      document.getElementById("course-end").value = c.endDate || "";
+      document.getElementById("course-start").value = toDisplayDate(c.startDate);
+      document.getElementById("course-end").value = toDisplayDate(c.endDate);
       document.getElementById("course-price").value = parseFloat(c.price) || 0;
       document.getElementById("course-status").value = c.status || "Plan";
 
@@ -172,7 +182,7 @@ async function loadFees() {
         <td>${f.month}</td>
         <td>${f.year}</td>
         <td><input value="${f.amount}" onchange="updateFee('${d.id}','amount',this.value)"></td>
-        <td><input type="date" value="${f.dueDate}" onchange="updateFee('${d.id}','dueDate',this.value)"></td>
+        <td><input type="text" value="${toDisplayDate(f.dueDate)}" placeholder="DD/MM/YYYY" onchange="updateFee('${d.id}','dueDate',this.value)"></td>
         <td><input value="${f.interestPercent}" onchange="updateFee('${d.id}','interestPercent',this.value)"></td>
         <td><button onclick="deleteFee('${d.id}')">🗑</button></td>
       </tr>
@@ -187,12 +197,12 @@ window.generateFees = async () => {
 
   if (!currentCourseId) return alert("Guardar curso primero");
 
-  const start = new Date(document.getElementById("course-start").value);
-  const end = new Date(document.getElementById("course-end").value);
+  const start = parseFlexibleDate(document.getElementById("course-start").value);
+  const end = parseFlexibleDate(document.getElementById("course-end").value);
   const price = parseFloat(document.getElementById("course-price").value);
 
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-    return alert("Completar fecha de inicio y fin");
+  if (!start || !end) {
+    return alert("Completar fecha de inicio y fin en formato DD/MM/YYYY");
   }
 
   if (end < start) {
@@ -227,8 +237,7 @@ window.generateFees = async () => {
         month,
         year,
         amount: price,
-        dueDate: new Date(year, current.getMonth(), 10)
-          .toISOString().split("T")[0],
+        dueDate: toStorageDate(new Date(year, current.getMonth(), 10)),
         interestPercent: 10
       });
 
@@ -251,11 +260,23 @@ window.generateFees = async () => {
 // =====================
 window.updateFee = async (id, field, value) => {
 
+  const normalizedValue = field === "dueDate"
+    ? toStorageDate(value)
+    : value;
+
+  if (field === "dueDate" && !normalizedValue) {
+    return alert("Ingresar fecha válida en formato DD/MM/YYYY");
+  }
+
   await updateDoc(doc(db, "course_fees", id), {
     [field]: field === "amount" || field === "interestPercent"
       ? parseFloat(value)
-      : value
+      : normalizedValue
   });
+
+  if (field === "dueDate") {
+    await loadFees();
+  }
 };
 
 // =====================
