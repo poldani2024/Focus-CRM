@@ -13,6 +13,15 @@ import {
 
 let currentCourseId = null;
 
+function getPeriodKey(month, year) {
+  return `${Number(month)}_${Number(year)}`;
+}
+
+function syncCourseIdField() {
+  const courseIdInput = document.getElementById("course-id");
+  if (courseIdInput) courseIdInput.value = currentCourseId || "";
+}
+
 // =====================
 // INIT
 // =====================
@@ -64,13 +73,15 @@ window.saveCourse = async () => {
   if (!data.name) return alert("Nombre requerido");
 
   if (!currentCourseId) {
-    await addDoc(collection(db, "courses"), data);
+    const courseRef = await addDoc(collection(db, "courses"), data);
+    currentCourseId = courseRef.id;
   } else {
     await updateDoc(doc(db, "courses", currentCourseId), data);
   }
 
-  clearForm();
-  loadCourses();
+  syncCourseIdField();
+  await loadCourses();
+  await loadFees();
 };
 
 // =====================
@@ -110,6 +121,7 @@ window.editCourse = async (id) => {
       const c = d.data();
 
       currentCourseId = id;
+      syncCourseIdField();
 
       document.getElementById("course-organizer").value = c.organizerId || "";
       document.getElementById("course-location").value = c.locationId || "";
@@ -129,6 +141,7 @@ window.editCourse = async (id) => {
 // =====================
 function clearForm() {
   currentCourseId = null;
+  syncCourseIdField();
   document.querySelectorAll("input").forEach(i => i.value = "");
 }
 
@@ -178,24 +191,59 @@ window.generateFees = async () => {
   const end = new Date(document.getElementById("course-end").value);
   const price = parseFloat(document.getElementById("course-price").value);
 
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return alert("Completar fecha de inicio y fin");
+  }
+
+  if (end < start) {
+    return alert("La fecha de fin no puede ser menor a la fecha de inicio");
+  }
+
+  if (Number.isNaN(price)) {
+    return alert("Completar precio base");
+  }
+
+  const existingFeesSnap = await getDocs(
+    query(collection(db, "course_fees"), where("courseId", "==", currentCourseId))
+  );
+
+  const existingPeriods = new Set();
+  existingFeesSnap.forEach(docSnap => {
+    const fee = docSnap.data();
+    existingPeriods.add(getPeriodKey(fee.month, fee.year));
+  });
+
   let current = new Date(start);
+  let createdCount = 0;
 
   while (current <= end) {
+    const month = current.getMonth() + 1;
+    const year = current.getFullYear();
+    const periodKey = getPeriodKey(month, year);
 
-    await addDoc(collection(db, "course_fees"), {
-      courseId: currentCourseId,
-      month: current.getMonth() + 1,
-      year: current.getFullYear(),
-      amount: price,
-      dueDate: new Date(current.getFullYear(), current.getMonth(), 10)
-        .toISOString().split("T")[0],
-      interestPercent: 10
-    });
+    if (!existingPeriods.has(periodKey)) {
+      await addDoc(collection(db, "course_fees"), {
+        courseId: currentCourseId,
+        month,
+        year,
+        amount: price,
+        dueDate: new Date(year, current.getMonth(), 10)
+          .toISOString().split("T")[0],
+        interestPercent: 10
+      });
+
+      existingPeriods.add(periodKey);
+      createdCount += 1;
+    }
 
     current.setMonth(current.getMonth() + 1);
   }
 
-  loadFees();
+  await loadFees();
+
+  if (createdCount === 0) {
+    alert("No se generaron cuotas nuevas porque los períodos ya existían");
+  }
 };
 
 // =====================

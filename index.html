@@ -19,33 +19,43 @@
   <!-- HEADER -->
   <div class="header">
     <div>
-      <h2>Resumen del día</h2>
-      <p class="subtitle">Control de pagos, vencimientos y clases</p>
+      <h2>Resumen operativo</h2>
+      <p class="subtitle" id="dashboard-subtitle">Cargando métricas del CRM...</p>
     </div>
 
-    <input class="search" placeholder="Buscar alumna, curso o pago...">
+    <input class="search" id="dashboard-search" placeholder="Buscar curso o alumno en el resumen...">
   </div>
 
   <!-- KPIs -->
-  <div class="cards">
+  <div class="cards" id="dashboard-cards">
     <div class="card red">
-      <h3>Cobrado hoy</h3>
-      <strong>$185.000</strong>
+      <h3>Cursos activos</h3>
+      <strong id="kpi-active-courses">—</strong>
     </div>
 
     <div class="card yellow">
-      <h3>Pendientes</h3>
-      <strong>23</strong>
+      <h3>Alumnos activos</h3>
+      <strong id="kpi-active-students">—</strong>
     </div>
 
     <div class="card blue">
-      <h3>Vencen esta semana</h3>
-      <strong>9</strong>
+      <h3>Inscripciones activas</h3>
+      <strong id="kpi-active-enrollments">—</strong>
     </div>
 
     <div class="card green">
-      <h3>Clases hoy</h3>
-      <strong>4</strong>
+      <h3>Cobrado del mes</h3>
+      <strong id="kpi-month-collected">—</strong>
+    </div>
+
+    <div class="card blue">
+      <h3>Cursos al día</h3>
+      <strong id="kpi-paid-courses">—</strong>
+    </div>
+
+    <div class="card red">
+      <h3>Pagos pendientes</h3>
+      <strong id="kpi-pending-payments">—</strong>
     </div>
   </div>
 
@@ -54,11 +64,30 @@
 
     <!-- IZQUIERDA -->
     <div class="box">
-      <h3>Pagos por curso</h3>
-      <p class="subtitle">Quién viene cobrando mejor este mes</p>
+      <h3>Cobranza por curso</h3>
+      <p class="subtitle" id="course-performance-subtitle">Estado de recaudación del mes en cursos activos</p>
 
-      <div class="chart-placeholder">
-        (gráfico)
+      <div id="course-performance" class="dashboard-list dashboard-list-lg">
+        <div class="chart-placeholder">Cargando cursos...</div>
+      </div>
+
+      <div class="dashboard-summary-grid mt" id="dashboard-summary-grid">
+        <div class="summary-item">
+          <span>Cuotas del mes</span>
+          <strong id="summary-month-fees">—</strong>
+        </div>
+        <div class="summary-item">
+          <span>Cuotas cobradas</span>
+          <strong id="summary-paid-fees">—</strong>
+        </div>
+        <div class="summary-item">
+          <span>A vencer este mes</span>
+          <strong id="summary-due-this-month">—</strong>
+        </div>
+        <div class="summary-item">
+          <span>Vencidas</span>
+          <strong id="summary-overdue">—</strong>
+        </div>
       </div>
     </div>
 
@@ -67,18 +96,16 @@
 
       <div class="box">
         <h3>Seguimientos pendientes</h3>
-
-        <div class="task">🔴 Confirmar 3 transferencias</div>
-        <div class="task">🔴 Enviar 5 recordatorios</div>
-        <div class="task">🔴 Revisar cuota vencida</div>
+        <div id="pending-tasks" class="dashboard-list">
+          <div class="task">Cargando alertas...</div>
+        </div>
       </div>
 
       <div class="box mt">
         <h3>Movimientos recientes</h3>
-
-        <p>Pago acreditado de Mariana</p>
-        <p>Nueva alumna en PNL inicial</p>
-        <p>Asistencia cargada</p>
+        <div id="recent-movements" class="dashboard-list">
+          <p>Cargando pagos...</p>
+        </div>
       </div>
 
     </div>
@@ -89,6 +116,7 @@
 
 <!-- CARGA DEL SIDEBAR -->
 <script src="layout.js"></script>
+<script type="module" src="./js/dashboard.js"></script>
 
 </body>
 </html>
