@@ -28,24 +28,56 @@
   background: #f5f6fa;
 }
 
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
 .modal {
-  display:none;
-  position:fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background:rgba(0,0,0,0.4);
-  align-items:center;
-  justify-content:center;
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-content {
-  background:white;
-  padding:20px;
-  border-radius:10px;
-  width:300px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filters-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modal-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.modal-actions .btn-danger {
+  grid-column: 1 / -1;
 }
 </style>
 </head>
@@ -62,12 +94,17 @@
 
   <!-- FILTROS -->
   <div class="box">
-    <select id="filter-organizer" onchange="onOrganizerChange()"></select>
-    <select id="filter-location" onchange="onLocationChange()"></select>
-    <select id="filter-course" onchange="onCourseChange()"></select>
-    <select id="filter-student"></select>
+    <div class="filters-grid">
+      <select id="filter-organizer" onchange="onOrganizerChange()"></select>
+      <select id="filter-location" onchange="onLocationChange()"></select>
+      <select id="filter-course" onchange="onCourseChange()"></select>
+      <select id="filter-student"></select>
+      <select id="filter-year"></select>
+    </div>
 
-    <button class="btn-primary" onclick="loadGrid()">Filtrar</button>
+    <div class="filters-actions mt">
+      <button class="btn-primary" onclick="loadGrid()">Filtrar</button>
+    </div>
   </div>
 
   <!-- TABLA -->
@@ -97,8 +134,11 @@
     <input type="number" id="pay-amount" placeholder="Monto">
     <input type="text" id="pay-ref" placeholder="Comprobante">
 
-    <button class="btn-primary" onclick="savePayment()">Guardar</button>
-    <button onclick="closeModal()">Cancelar</button>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="savePayment()">Guardar</button>
+      <button onclick="closeModal()">Cancelar</button>
+      <button id="delete-payment-btn" class="btn-danger" onclick="deletePayment()" style="display:none;">Eliminar</button>
+    </div>
 
   </div>
 </div>
