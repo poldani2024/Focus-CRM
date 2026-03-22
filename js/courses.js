@@ -13,6 +13,15 @@ import {
 
 let currentCourseId = null;
 
+function getPeriodKey(month, year) {
+  return `${Number(month)}_${Number(year)}`;
+}
+
+function syncCourseIdField() {
+  const courseIdInput = document.getElementById("course-id");
+  if (courseIdInput) courseIdInput.value = currentCourseId || "";
+}
+
 // =====================
 // INIT
 // =====================
@@ -64,13 +73,15 @@ window.saveCourse = async () => {
   if (!data.name) return alert("Nombre requerido");
 
   if (!currentCourseId) {
-    await addDoc(collection(db, "courses"), data);
+    const courseRef = await addDoc(collection(db, "courses"), data);
+    currentCourseId = courseRef.id;
   } else {
     await updateDoc(doc(db, "courses", currentCourseId), data);
   }
 
-  clearForm();
-  loadCourses();
+  syncCourseIdField();
+  await loadCourses();
+  await loadFees();
 };
 
 // =====================
@@ -110,6 +121,7 @@ window.editCourse = async (id) => {
       const c = d.data();
 
       currentCourseId = id;
+      syncCourseIdField();
 
       document.getElementById("course-organizer").value = c.organizerId || "";
       document.getElementById("course-location").value = c.locationId || "";
@@ -129,6 +141,7 @@ window.editCourse = async (id) => {
 // =====================
 function clearForm() {
   currentCourseId = null;
+  syncCourseIdField();
   document.querySelectorAll("input").forEach(i => i.value = "");
 }
 
@@ -182,6 +195,10 @@ window.generateFees = async () => {
     return alert("Completar fecha de inicio y fin");
   }
 
+  if (end < start) {
+    return alert("La fecha de fin no puede ser menor a la fecha de inicio");
+  }
+
   if (Number.isNaN(price)) {
     return alert("Completar precio base");
   }
@@ -193,7 +210,7 @@ window.generateFees = async () => {
   const existingPeriods = new Set();
   existingFeesSnap.forEach(docSnap => {
     const fee = docSnap.data();
-    existingPeriods.add(`${fee.month}_${fee.year}`);
+    existingPeriods.add(getPeriodKey(fee.month, fee.year));
   });
 
   let current = new Date(start);
@@ -202,7 +219,7 @@ window.generateFees = async () => {
   while (current <= end) {
     const month = current.getMonth() + 1;
     const year = current.getFullYear();
-    const periodKey = `${month}_${year}`;
+    const periodKey = getPeriodKey(month, year);
 
     if (!existingPeriods.has(periodKey)) {
       await addDoc(collection(db, "course_fees"), {
